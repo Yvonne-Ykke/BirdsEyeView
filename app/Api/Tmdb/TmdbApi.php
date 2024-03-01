@@ -9,7 +9,7 @@ use JsonException;
 /*https://developer.themoviedb.org/docs/getting-started*/
 class TmdbApi extends  AbstractCallApi
 {
-    private string $baseUrl = 'https://iets/api/';
+    private string $baseUrl = 'https://api.themoviedb.org/';
 
     /**
      * @throws GuzzleException
@@ -21,9 +21,9 @@ class TmdbApi extends  AbstractCallApi
         $this->method = 'GET';
 
         $this->requestParameters = [
-            'auth' => [
-                env('TMDB_API_USERNAME'),
-                env('TMDB_API_PASSWORD'),
+            'headers' => [
+                'Authorization' => 'Bearer ' . env('TMDB_API_ACCESS_CODE'),
+                'accept' => 'application/json',
             ],
         ];
 
