@@ -7,6 +7,9 @@ use GuzzleHttp\Exception\GuzzleException;
 use JsonException;
 
 /*https://developer.themoviedb.org/docs/getting-started*/
+/*To test connection: start tinker and execute
+* > app(App\Api\Tmdb\TmdbApi::class)('3/authentication')
+*/
 class TmdbApi extends  AbstractCallApi
 {
     private string $baseUrl = 'https://api.themoviedb.org/';
@@ -38,7 +41,7 @@ class TmdbApi extends  AbstractCallApi
      */
     private function createRoute(string $endpoint, array $parameters): string
     {
-        return $this->baseUrl . $endpoint . '/?format=json&' . http_build_query($parameters);
+        return $this->baseUrl . $endpoint;
     }
 
 }
