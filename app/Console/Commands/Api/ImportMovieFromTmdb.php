@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Api;
 
 use App\Api\Tmdb\TmdbApi;
 use App\Models\Title;

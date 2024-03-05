@@ -1,0 +1,41 @@
+<?php
+
+namespace App\Console\Commands\TsvImport;
+
+use Illuminate\Console\Command;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
+
+class ImportMoviesFromTsv extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'app:import-movies-from-tsv {filename}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Command description';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle()
+    {
+        $process = new Process(['python', app_path('Python\importMovies.py')]);
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            throw new ProcessFailedException($process);
+        }
+
+        $data = $process->getOutput();
+
+        dd($data);
+    }
+}
