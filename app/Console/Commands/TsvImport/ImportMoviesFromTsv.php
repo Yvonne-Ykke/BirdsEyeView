@@ -27,7 +27,11 @@ class ImportMoviesFromTsv extends Command
      */
     public function handle()
     {
-        $process = new Process(['python', app_path('Python\importMovies.py')]);
+        $process = new Process(
+            command:['python', app_path('Python\test.py'), $this->argument('filename')],
+            timeout: 120
+        );
+
         $process->run();
 
         if (!$process->isSuccessful()) {
