@@ -29,9 +29,13 @@ class TmdbApi extends  AbstractCallApi
                 'accept' => 'application/json',
             ],
         ];
-
         $this->response = $this->execute();
-        return $this->handleResponse($this->response);
+
+        if ($this->response) {
+            return $this->handleResponse($this->response);
+        }
+
+        return $this->errorMessage;
     }
 
     /**
