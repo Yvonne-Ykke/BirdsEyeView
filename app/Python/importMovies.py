@@ -3,17 +3,7 @@ import psycopg2
 import csv
 from dotenv import load_dotenv
 
-def get_genre_with_ids(conn):
-    with conn.cursor() as cursor:
-        cursor.execute("""
-            SELECT DISTINCT from genres
-        """, (genre_name,))
-        genre_id = cursor.fetchone()
-        if genre_id:
-            return genre_id[0]
-        else:
-            cursor.execute("SELECT id FROM genres WHERE name = %s;", (genre_name,))
-            return cursor.fetchone()[0]
+
 
 def load_and_process_partial_tsv_data(file_path, conn):
     """
