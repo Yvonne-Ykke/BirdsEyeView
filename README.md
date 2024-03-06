@@ -17,3 +17,8 @@
 > php artisan make:filament-user
 
 > php artisan shield:super-admin --user=1
+
+# Python script gebruiken
+
+pip install psycopg2
+pip install load_dotenv
