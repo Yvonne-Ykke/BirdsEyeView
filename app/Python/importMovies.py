@@ -162,7 +162,7 @@ def main():
     load_titles(connection, nr_of_rows)
 
     # Load data via bestand (let op: 3x langzamer!)
-    # load_and_process_partial_tsv_data(connection, nr_of_rows, movie_data_path)
+    # load_titles(connection, nr_of_rows, movie_data_path)
 
 if __name__ == "__main__":
     main()
