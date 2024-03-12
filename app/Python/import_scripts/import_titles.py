@@ -5,7 +5,8 @@ import psycopg2
 import db_connector as db
 import requests
 import zlib
-import enums.URLS as URLS
+from enums.URLS import URLS
+import actions.stream as stream
 
 
 
@@ -24,9 +25,8 @@ def load_titles(conn):
     COLUMN_NAMES = None
 
     # Set data source
-    print(URLS)
     url = URLS.TITLE_BASICS.value
-    data_source = stream_gzip_content(url)
+    data_source = stream.stream_gzip_content(url)
 
     try:
         rows_added = 0
