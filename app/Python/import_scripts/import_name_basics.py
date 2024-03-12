@@ -3,7 +3,7 @@ import os
 
 import db_connector as db
 from enum import Enum
-import enums.URLS as URLS
+from enums.URLS import URLS
 
 def load_name_basics(connection):
     """
