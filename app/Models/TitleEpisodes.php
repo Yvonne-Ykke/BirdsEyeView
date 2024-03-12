@@ -19,6 +19,7 @@ class TitleEpisodes extends Model
         'imdb_externid',
         'language_id',
         'season_number',
+        'episode_number',
         'air_date',
         'runtime_minutes',
     ];
