@@ -21,6 +21,7 @@ def stream_gzip_content(url):
     with requests.get(url, stream=True) as response:
         if response.status_code == 200:
             decompressor = zlib.decompressobj(zlib.MAX_WBITS | 16)
+            # line_count = 0
             buffer = ""  # Buffer om gedeeltelijke rijen op te slaan
             for chunk in response.iter_content(chunk_size=1024):
                 decompressed_chunk = decompressor.decompress(chunk)
@@ -32,13 +33,16 @@ def stream_gzip_content(url):
                 buffer = lines.pop()  # Laatste element is mogelijk een gedeeltelijke rij
                 for line in lines:
                     yield line
+#                     line_count += 1
+#                     if line_count == 1000:
+#                         return
         else:
             print("Er is een fout opgetreden bij het downloaden van het bestand.")
 
 
 def load_titles(conn):
     """
-    Load and process TSV data from  a stream.
+    Load and process TSV data from a stream.
 
     Args:
     conn (psycopg2.extensions.connection): A connection to the database.
@@ -50,12 +54,15 @@ def load_titles(conn):
     genres_with_ids = {}
     COLUMN_NAMES = None
 
-    # set data source
+
+
+    # Set data source
     url = URLs.TITLE_BASICS.value
     data_source = stream_gzip_content(url)
 
     try:
         rows_added = 0
+        commit_count = 0
 
         for rows_processed, line in enumerate(data_source):
             row = line.rstrip('\n').split('\t')  # Split de regel in velden
@@ -66,6 +73,14 @@ def load_titles(conn):
                 continue  # Skip processing the first row
 
             row = dict(zip(COLUMN_NAMES, row))
+
+            # Check if the film already exists in the database
+            with conn.cursor() as cursor:
+               cursor.execute("SELECT imdb_externid FROM titles WHERE imdb_externid = %s;", (row['tconst'],))
+               result = cursor.fetchone()
+               if result:
+                   print(f"Skipping already imported film: {row['primaryTitle']}")
+                   continue
 
             for genre_name in row['genres'].split(','):
                 if genre_name not in genres_with_ids:
@@ -80,21 +95,16 @@ def load_titles(conn):
                     RETURNING id;
                 """, (row['tconst'], row['primaryTitle'], row['titleType'], row['isAdult'] if row['isAdult'] != '\\N' else None, row['startYear'] if row['startYear'] != '\\N' else None, row['endYear'] if row['endYear'] != '\\N' else None, row['runtimeMinutes'] if row['runtimeMinutes'] != '\\N' else None, row['originalTitle']))
 
-                print("Loaded " + row['primaryTitle'])
+                print("Loaded " + str(rows_processed) + row['primaryTitle'])
                 result = cursor.fetchone()
                 if result is not None:
                     rows_added += 1
 
-                # Check if title is already imported
-                if result is None:
-                    continue
-
-                title_id = result[0]
-                for genre_name, genre_id in genres_with_ids.items():
-                    cursor.execute("""
-                        INSERT INTO title_genres (title_id, genre_id)
-                        VALUES (%s, %s);
-                    """, (title_id, genre_id))
+                commit_count += 1
+                if commit_count == 1000:
+                    conn.commit()
+                    print("1000 films imported")
+                    commit_count = 0
 
     except psycopg2.Error as e:
         conn.rollback()
