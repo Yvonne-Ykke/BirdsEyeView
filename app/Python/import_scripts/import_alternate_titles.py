@@ -98,7 +98,7 @@ def load_titles(conn):
                     rows_added += 1
 
                 commit_count += 1
-                if commit_count == 1000:
+                if commit_count == 5000:
                     conn.commit()
                     print("1000 films imported")
                     commit_count = 0
