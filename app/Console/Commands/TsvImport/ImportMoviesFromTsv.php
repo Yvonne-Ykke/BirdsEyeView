@@ -13,7 +13,7 @@ class ImportMoviesFromTsv extends Command
      *
      * @var string
      */
-    protected $signature = 'app:import-movies-from-tsv {filename}';
+    protected $signature = 'app:import-movies-from-tsv';
 
     /**
      * The console command description.
@@ -28,7 +28,7 @@ class ImportMoviesFromTsv extends Command
     public function handle()
     {
         $process = new Process(
-            command:['python', app_path('Python\test.py'), $this->argument('filename')],
+            command:['python', app_path('Python\import_imdb_data.py')],
             timeout: 120
         );
 
