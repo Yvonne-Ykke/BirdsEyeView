@@ -49,33 +49,15 @@ def load_crew(connection):
             # Haal interne id for tconst / film op
             movie_id = get_movie_id(connection, row['tconst'])
 
-            # directors toevoegen aan database
+            # Regisseurs toevoegen aan database
             if movie_has_directors:
-                for director in row['directors'].split(','):
-                    # Haal people_id op voor director
-                    people_id = get_people_id(connection, director)
-                    if people_id and movie_id:
-                        add_crew_to_movie(connection, movie_id, people_id, commit_count)
-                        commit_count += 1
-                        rows_added += 1
-                        if commit_count == 1000:
-                            connection.commit()
-                            print(f"\n{commit_count} crew members added to movies\n")
-                            commit_count = 0
+                directors = row['directors'].split(',')
+                commit_count, rows_added = add_crew_to_database(connection, directors, movie_id, commit_count, "directors", rows_added)
 
-            # writers toevoegen aan database
+            # Schrijvers toevoegen aan database
             if movie_has_writers:
-                for writer in row['writers'].split(','):
-                    people_id = get_people_id( connection, writer)
-                    if people_id and movie_id:
-                        add_crew_to_movie(connection, movie_id, people_id, commit_count)
-                        commit_count += 1
-                        rows_added += 1
-                        if commit_count == 1000:
-                            connection.commit()
-                            print(f"{commit_count} crew members added to movies")
-                            commit_count = 0
-
+                writers = row['writers'].split(',')
+                commit_count, rows_added = add_crew_to_database(connection, writers, movie_id, commit_count, "writers", rows_added)
 
     except psycopg2.Error as e:
         connection.rollback()
@@ -89,8 +71,21 @@ def load_crew(connection):
     duration = end_time - start_time
     print("Data ingalden via stream in " +  str(duration))
 
-def add_crew_to_movie(connection, movie_id, people_id, commit_count):
+def add_crew_to_database(connection, crew_list, movie_id, commit_count, role, rows_added):
+    for crew_member in crew_list:
+        people_id = get_people_id(connection, crew_member)
+        if people_id and movie_id:
+            add_crew_to_movie(connection, movie_id, people_id)
+            print(f"{commit_count} added crew " + str(people_id) + " to movie " + str(movie_id))
+            commit_count += 1
+            rows_added += 1
+            if commit_count == 1000:
+                connection.commit()
+                print(f"{commit_count} {role} added to movies")
+                commit_count = 0
+    return commit_count, rows_added
 
+def add_crew_to_movie(connection, movie_id, people_id):
     # Model Type instellen
     model_type = 'App\Models\Title'
 
@@ -99,8 +94,6 @@ def add_crew_to_movie(connection, movie_id, people_id, commit_count):
             INSERT INTO model_has_crew (model_type, model_id, people_id)
             VALUES (%s, %s, %s);
             """, (model_type, movie_id, people_id))
-
-    print(f"{commit_count} added crew " + str(people_id) + " to movie " + str(movie_id))
 
 def get_movie_id(connection, tconst):
    with connection.cursor() as cursor:
