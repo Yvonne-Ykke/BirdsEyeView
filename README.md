@@ -29,6 +29,7 @@ php artisan migrate
 pip install psycopg2
 pip install load_dotenv
 pip install requests
+pip install truncate
 
 ## Data op de juiste plek
 verplaats je tsv bestanden naar 'storage/app/public' in dit BirdEyeView project
