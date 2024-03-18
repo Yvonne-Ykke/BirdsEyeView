@@ -80,7 +80,8 @@ def load_name_basics(connection):
                                 VALUES (%s, %s);
                             """, (people_id, profession_id))
 
-
+    except KeyboardInterrupt:
+        print("Process interrupted by keyboard")
     except psycopg2.Error as e:
         conn.rollback()
         print("An error occurred during data processing:", e)
@@ -88,7 +89,6 @@ def load_name_basics(connection):
         conn.commit()
 
     print(str(rows_added) + " nieuwe rijen toegevoegd.")
-    print(str(rows_processed) + " rijen totaal in database")
     end_time = datetime.now()
     duration = end_time - start_time
     print("Data ingalden via stream in " +  str(duration))

@@ -84,11 +84,11 @@ def load_titles(conn):
                 """, (
                     title_id,
                     language_with_ids[row['language']],
-                    row['title'],
+                    row['title'][:255],
                     row['ordering'] if row['types'] != '\\N' else None,
                     row['region'] if row['region'] != '\\N' else None,
                     row['types'] if row['types'] != '\\N' else None,
-                    row['attributes'] if row['attributes'] != '\\N' else None,
+                    row['attributes'][:255] if row['attributes'] != '\\N' else None,
                     row['isOriginalTitle'] if row['types'] != '\\N' else bool(0)
                 ))
 
@@ -102,7 +102,8 @@ def load_titles(conn):
                     conn.commit()
                     print("1000 films imported")
                     commit_count = 0
-
+    except KeyboardInterrupt:
+        print("Process interrupted by keyboard")
     except psycopg2.Error as e:
         conn.rollback()
         print("An error occurred during data processing:", e)
@@ -111,7 +112,6 @@ def load_titles(conn):
 
     print("Data bevat: " + str(len(language_with_ids)) + " talen.")
     print(str(rows_added) + " nieuwe rijen toegevoegd.")
-    print(str(rows_processed) + " rijen totaal in database")
     end_time = datetime.now()
     duration = end_time - start_time
     print("Data ingeladen via stream in" + str(duration))

@@ -10,7 +10,6 @@ def main():
     import_names.execute()
     import_alternate_titles.execute()
     import_episodes.execute()
-
     import_crew.execute()
 
 if __name__ == "__main__":

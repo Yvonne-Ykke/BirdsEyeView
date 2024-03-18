@@ -7,9 +7,6 @@ import requests
 import zlib
 from enums.URLS import URLS
 import actions.stream as stream
-from textwrap import truncate
-
-
 def load_titles(conn):
     """
     Load and process TSV data from a stream.
@@ -26,7 +23,7 @@ def load_titles(conn):
 
     # Set data source
     url = URLS.TITLE_BASICS.value
-    data_source = stream.stream_gzip_content(url)
+    data_source = stream.stream_gzip_content(url, conn)
 
     try:
         rows_added = 0
@@ -37,7 +34,7 @@ def load_titles(conn):
 
             # If it's the first row, extract column names
             if rows_processed == 0:
-                COLUMN_NAMES = row
+                COLUMN_NAMES = stream.get_header(url).rstrip('\n').split('\t')
                 continue  # Skip processing the first row
 
             row = dict(zip(COLUMN_NAMES, row))
@@ -47,7 +44,7 @@ def load_titles(conn):
                cursor.execute("SELECT imdb_externid FROM titles WHERE imdb_externid = %s;", (row['tconst'],))
                result = cursor.fetchone()
                if result:
-                   print(f"Skipping already imported film: {row['primaryTitle']}")
+                   print(f"{str(rows_processed)} Skipping already imported film: {row['primaryTitle'][:255]}")
                    continue
 
             for genre_name in row['genres'].split(','):
@@ -61,9 +58,10 @@ def load_titles(conn):
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (imdb_externid) DO NOTHING
                     RETURNING id;
-                """, (row['tconst'], truncate(row['primaryTitle'], width=255), row['titleType'], row['isAdult'] if row['isAdult'] != '\\N' else None, row['startYear'] if row['startYear'] != '\\N' else None, row['endYear'] if row['endYear'] != '\\N' else None, row['runtimeMinutes'] if row['runtimeMinutes'] != '\\N' else None, row['originalTitle']))
+                """, (row['tconst'], row['primaryTitle'][:255], row['titleType'], row['isAdult'] if row['isAdult'] != '\\N' else None, row['startYear'] if row['startYear'] != '\\N' else None, row['endYear'] if row['endYear'] != '\\N' else None, row['runtimeMinutes'] if row['runtimeMinutes'] != '\\N' else None, row['originalTitle'][:255]))
 
-                print("Loaded " + str(rows_processed) + row['primaryTitle'])
+                print("Loaded " + str(rows_processed) + " new movies ")
+
                 result = cursor.fetchone()
                 if result is not None:
                     rows_added += 1
@@ -74,15 +72,18 @@ def load_titles(conn):
                     print("1000 films imported")
                     commit_count = 0
 
+
+    except KeyboardInterrupt:
+        print("Process interrupted by keyboard")
     except psycopg2.Error as e:
         conn.rollback()
         print("An error occurred during data processing:", e)
+        print('\a') # make a sound
     else:
         conn.commit()
 
     print("Data bevat: " + str(len(genres_with_ids)) + " genres.")
     print(str(rows_added) + " nieuwe rijen toegevoegd.")
-    print(str(rows_processed) + " rijen totaal in database")
     end_time = datetime.now()
     duration = end_time - start_time
     print("Data ingeladen via stream in" + str(duration))

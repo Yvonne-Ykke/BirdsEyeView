@@ -78,7 +78,8 @@ def load_episodes(conn):
                     conn.commit()
                     print("1000 films imported")
                     commit_count = 0
-
+    except KeyboardInterrupt:
+        print("Process interrupted by keyboard")
     except psycopg2.Error as e:
         conn.rollback()
         print("An error occurred during data processing:", e)
@@ -86,7 +87,6 @@ def load_episodes(conn):
         conn.commit()
 
     print(str(rows_added) + " nieuwe rijen toegevoegd.")
-    print(str(rows_processed) + " rijen totaal in database")
     end_time = datetime.now()
     duration = end_time - start_time
     print("Data ingeladen via stream in" + str(duration))

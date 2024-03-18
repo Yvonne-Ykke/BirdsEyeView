@@ -58,7 +58,8 @@ def load_crew(connection):
             if movie_has_writers:
                 writers = row['writers'].split(',')
                 commit_count, rows_added = add_crew_to_database(connection, writers, movie_id, commit_count, "writers", rows_added)
-
+    except KeyboardInterrupt:
+        print("Process interrupted by keyboard")
     except psycopg2.Error as e:
         connection.rollback()
         print("An error occurred during data processing:", e)
@@ -66,7 +67,6 @@ def load_crew(connection):
         connection.commit()
 
     print(str(rows_added) + " nieuwe rijen toegevoegd.")
-    print(str(rows_processed) + " rijen totaal in database")
     end_time = datetime.now()
     duration = end_time - start_time
     print("Data ingalden via stream in " +  str(duration))
