@@ -7,7 +7,7 @@ import requests
 import zlib
 from enums.URLS import URLS
 import actions.stream as stream
-
+from textwrap import truncate
 
 
 def load_titles(conn):
@@ -61,7 +61,7 @@ def load_titles(conn):
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (imdb_externid) DO NOTHING
                     RETURNING id;
-                """, (row['tconst'], row['primaryTitle'], row['titleType'], row['isAdult'] if row['isAdult'] != '\\N' else None, row['startYear'] if row['startYear'] != '\\N' else None, row['endYear'] if row['endYear'] != '\\N' else None, row['runtimeMinutes'] if row['runtimeMinutes'] != '\\N' else None, row['originalTitle']))
+                """, (row['tconst'], truncate(row['primaryTitle'], width=255), row['titleType'], row['isAdult'] if row['isAdult'] != '\\N' else None, row['startYear'] if row['startYear'] != '\\N' else None, row['endYear'] if row['endYear'] != '\\N' else None, row['runtimeMinutes'] if row['runtimeMinutes'] != '\\N' else None, row['originalTitle']))
 
                 print("Loaded " + str(rows_processed) + row['primaryTitle'])
                 result = cursor.fetchone()
