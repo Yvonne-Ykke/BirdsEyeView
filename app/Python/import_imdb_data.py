@@ -6,9 +6,9 @@ import import_scripts.import_crew as import_crew
 import import_scripts.import_ratings as import_ratings
 
 def main():
-    import_titles.execute()
-    import_alternate_titles.execute()
-    import_episodes.execute()
+    # import_titles.execute()
+    # import_alternate_titles.execute()
+    # import_episodes.execute()
     import_names.execute()
     import_crew.execute()
     import_ratings.execute()
