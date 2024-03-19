@@ -20,7 +20,7 @@ def check_rating(title_id, model_type, conn):
                        (title_id, model_type))
         result = cursor.fetchone()
         if result:
-            print(f"Skipping already imported alternate title: {title_id}")
+            print(f"Skipping already imported rating for title: {title_id}")
             return 1
         return 0
 
@@ -31,8 +31,7 @@ def load_ratings(conn):
     model_type = 'App\\Models\\Title'
     # Set data source
     url = URLS.TITLE_RATINGS.value
-    data_source = stream.stream_gzip_content(url)
-
+    data_source = stream.stream_all_gzip_content(url)
     try:
         rows_added = 0
         commit_count = 0
