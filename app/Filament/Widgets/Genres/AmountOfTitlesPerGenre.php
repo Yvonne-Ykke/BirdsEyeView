@@ -1,30 +1,31 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Genres;
 
 use App\Models\Genre;
+use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Set;
 use Illuminate\Support\Collection;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
-use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Set;
 
-class GenreRatingsChart extends ApexChartWidget
+class AmountOfTitlesPerGenre extends ApexChartWidget
 {
     /**
      * Chart Id
      *
      * @var string
      */
-    protected static string $chartId = 'genreRatingsChart';
+    protected static string $chartId = 'AmountOfTitlesPerGenre';
 
     /**
      * Widget Title
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Gemiddelde recensie per genre';
+    protected static ?string $heading = 'Aantal titels per genre';
 
+    protected int | string | array $columnSpan = 2;
     /**
      * Chart options (series, labels, types, size, animations...)
      * https://apexcharts.com/docs/options
@@ -46,7 +47,7 @@ class GenreRatingsChart extends ApexChartWidget
             ],
             'series' => [
                 [
-                    'name' => 'Gemiddelde score',
+                    'name' => 'Aantal titels',
                     'data' => $this->getChartData($genres),
                 ],
             ],
@@ -64,8 +65,6 @@ class GenreRatingsChart extends ApexChartWidget
                         'fontFamily' => 'inherit',
                     ],
                 ],
-                'min' => 0,
-                'max' => 10,
             ],
             'colors' => ['#f59e0b'],
         ];
@@ -81,7 +80,6 @@ class GenreRatingsChart extends ApexChartWidget
                     ->where('name', '!=', '\N')
                     ->pluck('name', 'id'))
                 ->live()
-                ->maxItems(10)
                 ->hintAction(
                     Action::make('clearField')
                         ->label('Reset invoerveld')
@@ -104,8 +102,7 @@ class GenreRatingsChart extends ApexChartWidget
             $genres = Genre::query()
                 ->whereIn('id', $this->filterFormData['genres']);
         } else
-            $genres = Genre::query()
-                ->limit(10);
+            $genres = Genre::query();
 
         return $genres
             ->orderBy('name')
@@ -115,10 +112,16 @@ class GenreRatingsChart extends ApexChartWidget
 
     private function getChartData(Collection $genres): array
     {
-        $genreWithAverageRating = [];
+        $genresTitleSum = [];
         foreach ($genres as $genre) {
-            $genreWithAverageRating[] = $genre->getAverageRating()['averageRating'];
-        }
-        return $genreWithAverageRating;
+            $genresTitleSum[] = $this->getGenreTitleSum($genre);
+        };
+
+        return $genresTitleSum;
+    }
+
+    private function getGenreTitleSum(Genre $genre): int
+    {
+        return $genre->titles()->count();
     }
 }

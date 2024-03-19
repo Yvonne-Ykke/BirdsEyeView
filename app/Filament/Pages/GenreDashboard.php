@@ -2,8 +2,9 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Widgets\GenreRatingsChart;
-use App\Filament\Widgets\SumGenreMoviesChart;
+use App\Filament\Widgets\Genres\AmountOfTitlesPerGenre;
+use App\Filament\Widgets\Genres\GenreRatingsChart;
+use App\Filament\Widgets\Genres\SumGenreMoviesChart;
 use Illuminate\Support\Facades\Route;
 
 
@@ -34,7 +35,8 @@ class GenreDashboard extends \Filament\Pages\Dashboard
     {
         return [
             GenreRatingsChart::class,
-            SumGenreMoviesChart::class,
+//            SumGenreMoviesChart::class,
+            AmountOfTitlesPerGenre::class,
         ];
     }
 
