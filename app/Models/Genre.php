@@ -48,7 +48,7 @@ class Genre extends Model
     {
        $result =  DB::select(
            "SELECT
-                       cast(sum(average_rating) / count(average_rating) as decimal(16, 2)) as genre_average_rating,
+                       cast(sum(average_rating * number_votes) / sum(number_votes) as decimal(16, 2)) as genre_average_rating,
                        sum(number_votes) as sum_votes
                   FROM titles
                          INNER JOIN model_has_ratings
