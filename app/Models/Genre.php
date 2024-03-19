@@ -44,7 +44,7 @@ class Genre extends Model
         return $this->belongsToMany(Title::class, 'title_genres', 'genre_id', 'id');
     }
 
-    public function getAverageRating(): array
+    public function getAverageRating(int $minimalAmountReviews, int $maxAmountReviews): array
     {
        $result =  DB::select(
            "SELECT
@@ -55,7 +55,9 @@ class Genre extends Model
                                     on titles.id = model_has_ratings.model_id
                                         and model_has_ratings.model_type = 'App\Models\Title'
                          INNER JOIN public.title_genres tg on titles.id = tg.title_id
-                  WHERE tg.genre_id = (SELECT id from genres where id = $this->id)"
+                  WHERE tg.genre_id = (SELECT id from genres where id = $this->id)
+                  AND model_has_ratings.number_votes >= $minimalAmountReviews
+                  AND model_has_ratings.number_votes <= $maxAmountReviews"
         )[0];
 
         return [
