@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class Title extends Model
 {
@@ -46,4 +49,14 @@ class Title extends Model
     protected $casts = [
 
     ];
+
+    public function genres(): BelongsToMany
+    {
+        return $this->belongsToMany(Genre::class);
+    }
+
+    public function rating(): MorphOne
+    {
+        return $this->morphOne(Rating::class, 'rateable', 'model_type', 'model_id');
+    }
 }
