@@ -1,7 +1,6 @@
 from datetime import datetime
 import os
 import db_connector as db
-
 from enums.URLS import URLS
 import actions.stream as stream
 import psycopg2
@@ -21,7 +20,8 @@ def load_crew(connection):
 
     # set data source
     url = URLS.TITLE_CREW.value
-    data_source = stream.stream_gzip_content(url)
+    data_source = stream.stream_all_gzip_content(url)
+
 
     try:
         rows_added = 0

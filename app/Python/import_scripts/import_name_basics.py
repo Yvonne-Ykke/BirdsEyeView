@@ -1,11 +1,12 @@
 from datetime import datetime
 import os
-
+import actions.stream as stream
 import db_connector as db
 from enum import Enum
 from enums.URLS import URLS
+import psycopg2
 
-def load_name_basics(connection):
+def load_name_basics(conn):
     """
     Load and process TSV data from a stream.
 
@@ -22,7 +23,7 @@ def load_name_basics(connection):
 
     # set data source
     url = URLS.NAME_BASICS.value
-    data_source = stream.stream_gzip_content(url)
+    data_source = stream.stream_all_gzip_content(url)
 
     try:
         rows_added = 0
@@ -46,17 +47,6 @@ def load_name_basics(connection):
             for title_id in row['knownForTitles'].split(','):
                 with conn.cursor() as cursor:
                     # Query om de people_id op te halen aan de hand van de title_id
-                    cursor.execute("SELECT imdb_externid FROM titles WHERE imdb_externid = %s", (title_id,))
-                    result = cursor.fetchone()
-                    if result:
-                        db_title_id = result[0]
-                        cursor.execute("""
-                        INSERT INTO model_has_crew (model_id, people_id, person_is_known_for_model)
-                        VALUES (%s, %s, %s);
-                        """, (db_title_id, row['people_id'], TRUE))
-                    else:
-                        print("title_id is nog niet bekend: ", title_id)
-
                     cursor.execute("""
                         INSERT INTO people (imdb_externid, name, birth_year, death_year)
                         VALUES (%s, %s, %s, %s)
@@ -73,6 +63,18 @@ def load_name_basics(connection):
                         continue
 
                     people_id = result[0]
+
+                    cursor.execute("SELECT imdb_externid FROM titles WHERE imdb_externid = %s", (title_id,))
+                    result = cursor.fetchone()
+                    if result:
+                        db_title_id = result[0]
+                        cursor.execute("""
+                        INSERT INTO model_has_crew (model_id, people_id, person_is_known_for_model)
+                        VALUES (%s, %s, %s);
+                        """, (db_title_id, people_id, True))
+                    else:
+                        print("title_id is nog niet bekend: ", title_id)
+
                     for profession, profession_id in professions.items():
                         with conn.cursor() as cursor:
                             cursor.execute("""
@@ -80,8 +82,7 @@ def load_name_basics(connection):
                                 VALUES (%s, %s);
                             """, (people_id, profession_id))
 
-    except KeyboardInterrupt:
-        print("Process interrupted by keyboard")
+
     except psycopg2.Error as e:
         conn.rollback()
         print("An error occurred during data processing:", e)
@@ -89,6 +90,7 @@ def load_name_basics(connection):
         conn.commit()
 
     print(str(rows_added) + " nieuwe rijen toegevoegd.")
+    print(str(rows_processed) + " rijen totaal in database")
     end_time = datetime.now()
     duration = end_time - start_time
     print("Data ingalden via stream in " +  str(duration))

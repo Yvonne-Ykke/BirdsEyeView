@@ -2,9 +2,19 @@ import csv
 import psycopg2
 import requests
 import zlib
+import db_connector as db
+
+def get_stream_start_row(table):
+    conn = db.get_connection
+    with conn.cursor() as cursor:
+        cursor.execute(f"""
+        select COUNT(*) from {table}
+        """)
+        print("start_row is: ", start_row)
+        return cursor.fetchone()[0] + 1
 
 
-def stream_gzip_content(url):
+def stream_all_gzip_content(url):
     with requests.get(url, stream=True) as response:
         if response.status_code == 200:
             decompressor = zlib.decompressobj(zlib.MAX_WBITS | 16)

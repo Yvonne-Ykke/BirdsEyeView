@@ -31,7 +31,8 @@ def load_episodes(conn):
 
     # Set data source
     url = URLS.TITLE_EPISODE.value
-    data_source = stream.stream_gzip_content(url)
+    data_source = stream.stream_all_gzip_content(url)
+
 
     try:
         rows_added = 0
