@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\DB;
 
 class Genre extends Model
 {
@@ -36,4 +38,29 @@ class Genre extends Model
     protected $casts = [
 
     ];
+
+    public function titles(): BelongsToMany
+    {
+        return $this->belongsToMany(Title::class, 'title_genres', 'genre_id', 'id');
+    }
+
+    public function getAverageRating(): array
+    {
+       $result =  DB::select(
+           "SELECT
+                       cast(sum(average_rating) / count(average_rating) as decimal(16, 2)) as genre_average_rating,
+                       sum(number_votes) as sum_votes
+                  FROM titles
+                         INNER JOIN model_has_ratings
+                                    on titles.id = model_has_ratings.model_id
+                                        and model_has_ratings.model_type = 'App\Models\Title'
+                         INNER JOIN public.title_genres tg on titles.id = tg.title_id
+                  WHERE tg.genre_id = (SELECT id from genres where id = $this->id)"
+        )[0];
+
+        return [
+            'averageRating' => $result->genre_average_rating,
+            'numberVotes' => $result->sum_votes
+        ];
+    }
 }
