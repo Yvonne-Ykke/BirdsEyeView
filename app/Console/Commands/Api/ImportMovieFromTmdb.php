@@ -16,19 +16,15 @@ class ImportMovieFromTmdb extends Command
      *
      * @var string
      */
-    protected $signature = 'app:import-movies-from-tmdb';
+    protected $signature = 'app:import-movies-from-tmdb {limitJobs?}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Imports movies from TMDB based on the amount of titles currently in the database';
 
-    private string $endpoint = '3/movie/';
-    private string $urlParameters = '?language=en-US';
-
-    private ?Collection $data = null;
 
     /**
      * Execute the console command.
@@ -48,6 +44,12 @@ class ImportMovieFromTmdb extends Command
 
         if ($incrementedStart >= $end) {
             return;
+        }
+
+        if ($this->argument('limitJobs')) {
+            if ($increment >= $this->argument('limitJobs') * 50) {
+                return;
+            }
         }
 
         $tmdbExternIds = $this->setTmdbExternIds($increment, $start, $end);
