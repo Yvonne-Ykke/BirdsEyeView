@@ -3,6 +3,7 @@
 namespace App\Console\Commands\Api;
 
 use App\Api\Tmdb\TmdbApi;
+use App\Jobs\ImportTmdbMoviesJob;
 use App\Models\Title;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
@@ -15,7 +16,7 @@ class ImportMovieFromTmdb extends Command
      *
      * @var string
      */
-    protected $signature = 'app:import-movies-from-tmdb {movie}';
+    protected $signature = 'app:import-movies-from-tmdb';
 
     /**
      * The console command description.
@@ -34,20 +35,72 @@ class ImportMovieFromTmdb extends Command
      */
     #[NoReturn] public function handle(): void
     {
-        $this->data = collect(app(TmdbApi::class)(
-            $this->endpoint .
-            $this->argument('movie') .
-            $this->urlParameters)
-        );
+        $jobBatches = $this->createJobBatches();
 
-        dd($this->data);
+        foreach ($jobBatches as $batch) {
+            $this->dispatchJobs($batch['start'], $batch['end'], 0);
+        }
     }
 
-    private function saveMovie() {
-        return Title::create([
-            'imdb_externid' => $this->data['imdb_id'],
-            'tmdb_externid' => $this->data['id']
-        ]);
+    private function dispatchJobs(int $start, int $end, int $increment): void
+    {
+        $incrementedStart = $increment + $start;
+
+        if ($incrementedStart >= $end) {
+            return;
+        }
+
+        $tmdbExternIds = $this->setTmdbExternIds($increment, $start, $end);
+
+        ImportTmdbMoviesJob::dispatch($tmdbExternIds);
+        echo "dispatched " . count($tmdbExternIds) . " jobs\n";
+
+        $this->dispatchJobs($start, $end, $increment + 50);
+    }
+
+    private function createJobBatches(): array
+    {
+        $amountOfTitles = Title::query()->count();
+        $start = 1;
+        $end = $amountOfTitles;
+        $batchSize = $amountOfTitles / 50;
+
+        return $this->batchNumbers($start, $end, $batchSize);
+    }
+
+    private function batchNumbers($start, $end, $batchSize): array
+    {
+        $batches = array();
+
+        for ($i = $start; $i <= $end; $i += $batchSize) {
+            $batch = array(
+                'start' => (int)floor($i),
+                'end' => (int)floor(min($i + $batchSize - 1, $end))
+            );
+
+            $batches[] = $batch;
+        }
+
+        return $batches;
+    }
+
+    private function setTmdbExternIds(int $increment, int $start, int $end): array
+    {
+        $tmdbExternIds = [];
+
+        if ($end - $start + $increment >= 50) {
+            $numberToReach  = $increment + 50;
+            for ($i = $increment + 1; $i <= $numberToReach; $i++) {
+                $tmdbExternIds[] = $i;
+            }
+
+        } else {
+            for ($i = 1; $i <= $end; $i++) {
+                $tmdbExternIds[] = $i;
+            }
+        }
+
+        return $tmdbExternIds;
     }
 
 

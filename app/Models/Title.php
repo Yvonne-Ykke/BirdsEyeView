@@ -52,7 +52,7 @@ class Title extends Model
 
     public function genres(): BelongsToMany
     {
-        return $this->belongsToMany(Genre::class);
+        return $this->belongsToMany(Genre::class, 'title_genres', 'title_id', 'genre_id');
     }
 
     public function rating(): MorphOne
