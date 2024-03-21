@@ -6,6 +6,7 @@ use App\Api\Tmdb\TmdbApi;
 use App\Models\Genre;
 use App\Models\Title;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class ImportTitleDetail
 {
@@ -17,8 +18,10 @@ class ImportTitleDetail
     {
         $this->result = app(TmdbApi::class)($this->endpoint . $tmbdExternId);
 
-        if (is_string($this->result))
+        if (is_string($this->result)) {
+            Log::error($this->result);
             return;
+        }
 
         $this->title = $this->saveTitle();
         $this->saveGenres();
