@@ -1,8 +1,8 @@
 from datetime import datetime
 import os
 import db_connector as db
-
 from enums.URLS import URLS
+from enums.PATHS import PATHS
 import actions.stream as stream
 import psycopg2
 
@@ -17,11 +17,11 @@ def load_crew(connection):
     None
     """
     start_time = datetime.now()
-    COLUMN_NAMES = None
 
     # set data source
     url = URLS.TITLE_CREW.value
-    data_source = stream.stream_gzip_content(url)
+    path = PATHS.TITLE_CREW.value
+    data_source = stream.fetch_source(path, url)
 
     try:
         rows_added = 0
@@ -29,14 +29,12 @@ def load_crew(connection):
 
         for rows_processed, line in enumerate(data_source):
 
-            row = line.rstrip('\n').split('\t')  # Split de regel in velden
-
             # If it's the first row, extract column names
             if rows_processed == 0:
-                COLUMN_NAMES = row
+                COLUMN_NAMES = line
                 continue  # Skip processing the first row
 
-            row = dict(zip(COLUMN_NAMES, row))
+            row = dict(zip(COLUMN_NAMES, line))
 
             # Controleer of de directors of writers leeg zijn
 
@@ -49,34 +47,17 @@ def load_crew(connection):
             # Haal interne id for tconst / film op
             movie_id = get_movie_id(connection, row['tconst'])
 
-            # directors toevoegen aan database
+            # Regisseurs toevoegen aan database
             if movie_has_directors:
-                for director in row['directors'].split(','):
-                    # Haal people_id op voor director
-                    people_id = get_people_id(connection, director)
-                    if people_id and movie_id:
-                        add_crew_to_movie(connection, movie_id, people_id, commit_count)
-                        commit_count += 1
-                        rows_added += 1
-                        if commit_count == 1000:
-                            connection.commit()
-                            print(f"\n{commit_count} crew members added to movies\n")
-                            commit_count = 0
+                directors = row['directors'].split(',')
+                commit_count, rows_added = add_crew_to_database(connection, directors, movie_id, commit_count, "directors", rows_added)
 
-            # writers toevoegen aan database
+            # Schrijvers toevoegen aan database
             if movie_has_writers:
-                for writer in row['writers'].split(','):
-                    people_id = get_people_id( connection, writer)
-                    if people_id and movie_id:
-                        add_crew_to_movie(connection, movie_id, people_id, commit_count)
-                        commit_count += 1
-                        rows_added += 1
-                        if commit_count == 1000:
-                            connection.commit()
-                            print(f"{commit_count} crew members added to movies")
-                            commit_count = 0
-
-
+                writers = row['writers'].split(',')
+                commit_count, rows_added = add_crew_to_database(connection, writers, movie_id, commit_count, "writers", rows_added)
+    except KeyboardInterrupt:
+        print("Process interrupted by keyboard")
     except psycopg2.Error as e:
         connection.rollback()
         print("An error occurred during data processing:", e)
@@ -84,13 +65,25 @@ def load_crew(connection):
         connection.commit()
 
     print(str(rows_added) + " nieuwe rijen toegevoegd.")
-    print(str(rows_processed) + " rijen totaal in database")
     end_time = datetime.now()
     duration = end_time - start_time
     print("Data ingalden via stream in " +  str(duration))
 
-def add_crew_to_movie(connection, movie_id, people_id, commit_count):
+def add_crew_to_database(connection, crew_list, movie_id, commit_count, role, rows_added):
+    for crew_member in crew_list:
+        people_id = get_people_id(connection, crew_member)
+        if people_id and movie_id:
+            add_crew_to_movie(connection, movie_id, people_id)
+            print(f"{commit_count} added crew " + str(people_id) + " to movie " + str(movie_id))
+            commit_count += 1
+            rows_added += 1
+            if commit_count == 1000:
+                connection.commit()
+                print(f"{commit_count} {role} added to movies")
+                commit_count = 0
+    return commit_count, rows_added
 
+def add_crew_to_movie(connection, movie_id, people_id):
     # Model Type instellen
     model_type = 'App\Models\Title'
 
@@ -99,8 +92,6 @@ def add_crew_to_movie(connection, movie_id, people_id, commit_count):
             INSERT INTO model_has_crew (model_type, model_id, people_id)
             VALUES (%s, %s, %s);
             """, (model_type, movie_id, people_id))
-
-    print(f"{commit_count} added crew " + str(people_id) + " to movie " + str(movie_id))
 
 def get_movie_id(connection, tconst):
    with connection.cursor() as cursor:

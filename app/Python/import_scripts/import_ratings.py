@@ -3,6 +3,7 @@ import psycopg2
 import db_connector as db
 import actions.stream as stream
 from enums.URLS import URLS
+from enums.PATHS import PATHS
 
 
 def get_title_id(imdb_extern_id, conn):
@@ -12,7 +13,6 @@ def get_title_id(imdb_extern_id, conn):
         if result:
             return result[0]
         return None
-
 
 def check_rating(title_id, model_type, conn):
     with conn.cursor() as cursor:
@@ -27,25 +27,25 @@ def check_rating(title_id, model_type, conn):
 
 def load_ratings(conn):
     start_time = datetime.now()
-    COLUMN_NAMES = None
     model_type = 'App\\Models\\Title'
     # Set data source
+
     url = URLS.TITLE_RATINGS.value
-    data_source = stream.stream_gzip_content(url)
+    path = PATHS.TITLE_RATINGS.value
+    data_source = stream.fetch_source(path, url)
 
     try:
         rows_added = 0
         commit_count = 0
 
         for rows_processed, line in enumerate(data_source):
-            row = line.rstrip('\n').split('\t')  # Split de regel in velden
 
             # If it's the first row, extract column names
             if rows_processed == 0:
-                COLUMN_NAMES = row
+                COLUMN_NAMES = line
                 continue  # Skip processing the first row
 
-            row = dict(zip(COLUMN_NAMES, row))
+            row = dict(zip(COLUMN_NAMES, line))
 
             title_id = get_title_id(row['tconst'], conn)
 
@@ -76,7 +76,7 @@ def load_ratings(conn):
                 commit_count += 1
                 if commit_count == 5000:
                     conn.commit()
-                    print("1000 ratings imported")
+                    print("5000 ratings imported")
                     commit_count = 0
 
     except psycopg2.Error as e:

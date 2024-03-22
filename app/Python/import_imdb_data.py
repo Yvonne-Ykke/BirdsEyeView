@@ -1,18 +1,20 @@
-import import_scripts.import_titles as import_titles
-import import_scripts.import_name_basics as import_names
-import import_scripts.import_alternate_titles as import_alternate_titles
-import import_scripts.import_title_episodes as import_episodes
-import import_scripts.import_crew as import_crew
-import import_scripts.import_ratings as import_ratings
+import import_scripts.import_alternate_titles as alternate_titles
+import import_scripts.import_crew as crew
+import import_scripts.import_name_basics as names
+import import_scripts.import_ratings as ratings
+import import_scripts.import_title_episodes as episodes
+import import_scripts.import_title_principals as principals
+import import_scripts.import_titles as titles
 
 def main():
-    # import_titles.execute()
-    # import_alternate_titles.execute()
-    # import_episodes.execute()
-    import_names.execute()
-    import_crew.execute()
-    import_ratings.execute()
 
+#   titles.execute()
+#  names.execute()
+#   alternate_titles.execute()
+#   episodes.execute() # ERROR
+#    crew.execute()
+#   ratings.execute()
+    principals.execute()
 
 if __name__ == "__main__":
     main()

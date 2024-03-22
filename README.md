@@ -65,3 +65,10 @@ relative_path_to_movie_data = 'storage/app/public/title.basics.tsv/data.tsv'
 
 > python app/Python/importMovies.py
 
+## Queue driver instellen
+
+> php artisan migrate
+
+> in .ENV de setting QUEUE_CONNECTION=database
+
+> in terminal: php artisan queue:work

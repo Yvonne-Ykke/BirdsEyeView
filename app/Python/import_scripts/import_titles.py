@@ -1,56 +1,43 @@
 from datetime import datetime
-import os
-import csv
 import psycopg2
 import db_connector as db
-import requests
-import zlib
 from enums.URLS import URLS
+from enums.PATHS import PATHS
 import actions.stream as stream
-from textwrap import truncate
-
 
 def load_titles(conn):
-    """
-    Load and process TSV data from a stream.
 
-    Args:
-    conn (psycopg2.extensions.connection): A connection to the database.
-
-    Returns:
-    None
-    """
     start_time = datetime.now()
     genres_with_ids = {}
-    COLUMN_NAMES = None
 
     # Set data source
+    path = PATHS.TITLE_BASICS.value
     url = URLS.TITLE_BASICS.value
-    data_source = stream.stream_gzip_content(url)
+    data_source = stream.fetch_source(path, url)
 
     try:
         rows_added = 0
         commit_count = 0
 
         for rows_processed, line in enumerate(data_source):
-            row = line.rstrip('\n').split('\t')  # Split de regel in velden
 
             # If it's the first row, extract column names
             if rows_processed == 0:
-                COLUMN_NAMES = row
+                COLUMN_NAMES = line
                 continue  # Skip processing the first row
 
-            row = dict(zip(COLUMN_NAMES, row))
+            row = dict(zip(COLUMN_NAMES, line))
 
             # Check if the film already exists in the database
             with conn.cursor() as cursor:
                cursor.execute("SELECT imdb_externid FROM titles WHERE imdb_externid = %s;", (row['tconst'],))
                result = cursor.fetchone()
                if result:
-                   print(f"Skipping already imported film: {row['primaryTitle']}")
+                   print(f"{str(rows_processed)} Skipping already imported film: {row['primaryTitle'][:255]}")
                    continue
 
-            for genre_name in row['genres'].split(','):
+            genres = row['genres'].split(',')
+            for genre_name in genres:
                 if genre_name not in genres_with_ids:
                     genre_id = create_and_get_genre_id(genre_name, conn)
                     genres_with_ids[genre_name] = genre_id
@@ -61,28 +48,42 @@ def load_titles(conn):
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (imdb_externid) DO NOTHING
                     RETURNING id;
-                """, (row['tconst'], truncate(row['primaryTitle'], width=255), row['titleType'], row['isAdult'] if row['isAdult'] != '\\N' else None, row['startYear'] if row['startYear'] != '\\N' else None, row['endYear'] if row['endYear'] != '\\N' else None, row['runtimeMinutes'] if row['runtimeMinutes'] != '\\N' else None, row['originalTitle']))
+                """, (row['tconst'], row['primaryTitle'][:255], row['titleType'], row['isAdult'] if row['isAdult'] != '\\N' else None, row['startYear'] if row['startYear'] != '\\N' else None, row['endYear'] if row['endYear'] != '\\N' else None, row['runtimeMinutes'] if row['runtimeMinutes'] != '\\N' else None, row['originalTitle'][:255]))
 
-                print("Loaded " + str(rows_processed) + row['primaryTitle'])
-                result = cursor.fetchone()
-                if result is not None:
-                    rows_added += 1
+            result = cursor.fetchone()
+            title_id = result[0]
 
-                commit_count += 1
-                if commit_count == 1000:
-                    conn.commit()
-                    print("1000 films imported")
-                    commit_count = 0
+            for genre in genres:
+                cursor.execute("""
+                INSERT INTO titles_genres (title_id, genre_id)
+                VALUES (%s, %s);
+                """, title_id, genres_with_ids[row['genre_id']])
 
+            print(title_id, genres_with_ids[row['genre_id']])
+
+            if result is not None:
+                rows_added += 1
+
+            print("Loaded " + str(rows_processed) + " new movies ")
+
+            commit_count += 1
+            if commit_count == 1000:
+                conn.commit()
+                print("1000 films imported")
+                commit_count = 0
+
+
+    except KeyboardInterrupt:
+        print("Process interrupted by keyboard")
     except psycopg2.Error as e:
         conn.rollback()
         print("An error occurred during data processing:", e)
+        print('\a') # make a sound
     else:
         conn.commit()
 
     print("Data bevat: " + str(len(genres_with_ids)) + " genres.")
     print(str(rows_added) + " nieuwe rijen toegevoegd.")
-    print(str(rows_processed) + " rijen totaal in database")
     end_time = datetime.now()
     duration = end_time - start_time
     print("Data ingeladen via stream in" + str(duration))
