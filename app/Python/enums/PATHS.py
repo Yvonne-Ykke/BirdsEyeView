@@ -6,6 +6,7 @@ print("Current working directory:", current_working_dir)
 
 DATA_FOLDER = current_working_dir + "\\storage\\app\public\\"
 
+
 class PATHS(Enum):
     NAME_BASICS = DATA_FOLDER + "name.basics.tsv"
     TITLE_AKAS = DATA_FOLDER + "title.akas.tsv"

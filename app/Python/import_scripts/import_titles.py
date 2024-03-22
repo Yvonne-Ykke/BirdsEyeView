@@ -5,8 +5,8 @@ from enums.URLS import URLS
 from enums.PATHS import PATHS
 import actions.stream as stream
 
-def load_titles(conn):
 
+def load_titles(conn):
     start_time = datetime.now()
     genres_with_ids = {}
 
@@ -30,11 +30,11 @@ def load_titles(conn):
 
             # Check if the film already exists in the database
             with conn.cursor() as cursor:
-               cursor.execute("SELECT imdb_externid FROM titles WHERE imdb_externid = %s;", (row['tconst'],))
-               result = cursor.fetchone()
-               if result:
-                   print(f"{str(rows_processed)} Skipping already imported film: {row['primaryTitle'][:255]}")
-                   continue
+                cursor.execute("SELECT imdb_externid FROM titles WHERE imdb_externid = %s;", (row['tconst'],))
+                result = cursor.fetchone()
+                if result:
+                    print(f"{str(rows_processed)} Skipping already imported film: {row['primaryTitle'][:255]}")
+                    continue
 
             genres = row['genres'].split(',')
             for genre_name in genres:
@@ -48,7 +48,11 @@ def load_titles(conn):
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (imdb_externid) DO NOTHING
                     RETURNING id;
-                """, (row['tconst'], row['primaryTitle'][:255], row['titleType'], row['isAdult'] if row['isAdult'] != '\\N' else None, row['startYear'] if row['startYear'] != '\\N' else None, row['endYear'] if row['endYear'] != '\\N' else None, row['runtimeMinutes'] if row['runtimeMinutes'] != '\\N' else None, row['originalTitle'][:255]))
+                """, (row['tconst'], row['primaryTitle'][:255], row['titleType'],
+                      row['isAdult'] if row['isAdult'] != '\\N' else None,
+                      row['startYear'] if row['startYear'] != '\\N' else None,
+                      row['endYear'] if row['endYear'] != '\\N' else None,
+                      row['runtimeMinutes'] if row['runtimeMinutes'] != '\\N' else None, row['originalTitle'][:255]))
 
             result = cursor.fetchone()
             title_id = result[0]
@@ -78,7 +82,7 @@ def load_titles(conn):
     except psycopg2.Error as e:
         conn.rollback()
         print("An error occurred during data processing:", e)
-        print('\a') # make a sound
+        print('\a')  # make a sound
     else:
         conn.commit()
 
@@ -87,6 +91,7 @@ def load_titles(conn):
     end_time = datetime.now()
     duration = end_time - start_time
     print("Data ingeladen via stream in" + str(duration))
+
 
 def create_and_get_genre_id(genre_name, conn):
     """
@@ -113,10 +118,11 @@ def create_and_get_genre_id(genre_name, conn):
             cursor.execute("SELECT id FROM genres WHERE name = %s;", (genre_name,))
             return cursor.fetchone()[0]
 
-def execute():
 
+def execute():
     connection = db.get_connection()
     load_titles(connection)
+
 
 if __name__ == "__main__":
     execute()
