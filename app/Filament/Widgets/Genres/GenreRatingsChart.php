@@ -150,6 +150,7 @@ class GenreRatingsChart extends ApexChartWidget
         return $genres
             ->orderBy('name')
             ->where('name', '!=', '\N')
+            ->where('name', '!=', 'Adult')
             ->get();
     }
 
