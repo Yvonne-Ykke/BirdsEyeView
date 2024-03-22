@@ -2,7 +2,7 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Widgets\Shows\ShowRatingsGenreChart;
+use App\Filament\Widgets\Shows\ShowsRatingsGenreChart;
 use Illuminate\Support\Facades\Route;
 
 

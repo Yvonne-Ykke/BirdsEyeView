@@ -10,7 +10,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Set;
 use Illuminate\Support\Collection;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
-use function GuzzleHttp\default_ca_bundle;
 
 class GenreRatingsChart extends ApexChartWidget
 {
