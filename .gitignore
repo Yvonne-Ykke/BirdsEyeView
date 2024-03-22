@@ -17,3 +17,9 @@ yarn-error.log
 /.fleet
 /.idea
 /.vscode
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.pdf
+*.csv
