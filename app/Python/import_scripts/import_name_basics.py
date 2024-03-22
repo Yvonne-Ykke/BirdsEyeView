@@ -4,6 +4,8 @@ import actions.stream as stream
 import db_connector as db
 from enum import Enum
 from enums.URLS import URLS
+from enums.PATHS import PATHS
+
 import psycopg2
 
 def load_name_basics(conn):
@@ -19,25 +21,23 @@ def load_name_basics(conn):
     start_time = datetime.now()
     known_for_titles = {}
     professions = {}
-    COLUMN_NAMES = None
 
     # set data source
     url = URLS.NAME_BASICS.value
-    data_source = stream.stream_all_gzip_content(url)
+    path = PATHS.NAME_BASICS.value
+    data_source = stream.fetch_source(path, url)
 
     try:
         rows_added = 0
 
         for rows_processed, line in enumerate(data_source):
 
-            row = line.rstrip('\n').split('\t')  # Split de regel in velden
-
             # If it's the first row, extract column names
             if rows_processed == 0:
-                COLUMN_NAMES = row
+                COLUMN_NAMES = line
                 continue  # Skip processing the first row
 
-            row = dict(zip(COLUMN_NAMES, row))
+            row = dict(zip(COLUMN_NAMES, line))
 
             for profession in row['primaryProfession'].split(','):
                 if profession not in professions:
@@ -52,7 +52,8 @@ def load_name_basics(conn):
                         VALUES (%s, %s, %s, %s)
                         ON CONFLICT (imdb_externid) DO NOTHING
                         RETURNING id;
-                    """, (row['nconst'], row['primaryName'], row['birthYear'] if row['birthYear'] != '\\N' else None, row['deathYear'] if row['deathYear'] != '\\N' else None))
+                    """, (row['nconst'], row['primaryName'],row['birthYear'] if row['birthYear'] != '\\N' and row['birthYear'].isdigit() else None
+, row['deathYear'] if row['deathYear'] != '\\N' else None))
 
                     result = cursor.fetchone()
                     if result is not None:
@@ -64,14 +65,14 @@ def load_name_basics(conn):
 
                     people_id = result[0]
 
-                    cursor.execute("SELECT imdb_externid FROM titles WHERE imdb_externid = %s", (title_id,))
+                    cursor.execute("SELECT id FROM titles WHERE imdb_externid = %s", (title_id,))
                     result = cursor.fetchone()
                     if result:
                         db_title_id = result[0]
                         cursor.execute("""
-                        INSERT INTO model_has_crew (model_id, people_id, person_is_known_for_model)
-                        VALUES (%s, %s, %s);
-                        """, (db_title_id, people_id, True))
+                        INSERT INTO model_has_crew (model_type, model_id, people_id, person_is_known_for_model)
+                        VALUES (%s, %s, %s, %s);
+                        """, ('App\Models\Title', db_title_id, people_id, True))
                     else:
                         print("title_id is nog niet bekend: ", title_id)
 
@@ -81,8 +82,10 @@ def load_name_basics(conn):
                                 INSERT INTO people_professions (people_id, profession_id)
                                 VALUES (%s, %s);
                             """, (people_id, profession_id))
+            print(f"All crew of movie {row['nconst']} inserted")
 
-
+    except KeyboardInterrupt:
+        print("Process interrupted by keyboard")
     except psycopg2.Error as e:
         conn.rollback()
         print("An error occurred during data processing:", e)

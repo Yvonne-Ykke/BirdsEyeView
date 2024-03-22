@@ -3,6 +3,7 @@ import psycopg2
 import db_connector as db
 import actions.stream as stream
 from enums.URLS import URLS
+from enums.PATHS import PATHS
 
 
 def get_title_id(imdb_extern_id, conn):
@@ -44,25 +45,24 @@ def create_and_get_language_id(language_iso_6391, conn):
 def load_titles(conn):
     start_time = datetime.now()
     language_with_ids = {}
-    COLUMN_NAMES = None
 
     # Set data source
     url = URLS.TITLE_AKAS.value
-    data_source = stream.stream_all_gzip_content(url)
+    path = PATHS.TITLE_AKAS.value
+    data_source = stream.fetch_source(path, url)
 
     try:
         rows_added = 0
         commit_count = 0
 
         for rows_processed, line in enumerate(data_source):
-            row = line.rstrip('\n').split('\t')  # Split de regel in velden
 
             # If it's the first row, extract column names
             if rows_processed == 0:
-                COLUMN_NAMES = row
+                COLUMN_NAMES = line
                 continue  # Skip processing the first row
 
-            row = dict(zip(COLUMN_NAMES, row))
+            row = dict(zip(COLUMN_NAMES, line))
 
             title_id = get_title_id(row['titleId'], conn)
             # Check if the film already exists in the database
@@ -92,7 +92,7 @@ def load_titles(conn):
                     row['isOriginalTitle'] if row['types'] != '\\N' else bool(0)
                 ))
 
-                print("Loaded " + str(rows_processed) + row['title'])
+                print("Loaded alternate title nr. " + str(rows_processed) + " named: " + row['title'].rstrip[:20])
                 result = cursor.fetchone()
                 if result is not None:
                     rows_added += 1
