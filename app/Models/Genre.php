@@ -41,7 +41,7 @@ class Genre extends Model
 
     public function titles(): BelongsToMany
     {
-        return $this->belongsToMany(Title::class, 'title_genres', 'genre_id', 'id');
+        return $this->belongsToMany(Title::class, 'title_genres', 'genre_id', 'title_id');
     }
 
     public function getAverageRating(int $minimalAmountReviews, int $maxAmountReviews, array $titleTypes = []): array
