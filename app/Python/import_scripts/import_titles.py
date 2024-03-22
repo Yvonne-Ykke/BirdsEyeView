@@ -1,10 +1,6 @@
 from datetime import datetime
-import os
-import csv
 import psycopg2
 import db_connector as db
-import requests
-import zlib
 from enums.URLS import URLS
 from enums.PATHS import PATHS
 import actions.stream as stream

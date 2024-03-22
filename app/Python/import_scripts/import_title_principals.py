@@ -27,7 +27,9 @@ def title_exists(title, conn):
         cursor.execute("SELECT id FROM titles WHERE imdb_externid = %s;",
                        (title,))
         result = cursor.fetchone()
-        return result[0]
+        if result:
+            return result[0]
+    return None
 
 
 def load_episodes(conn):
@@ -79,7 +81,7 @@ def load_episodes(conn):
                 commit_count += 1
                 if commit_count == 5000:
                     conn.commit()
-                    print("1000 films imported")
+                    print("5000 films imported")
                     commit_count = 0
 
     except psycopg2.Error as e:
