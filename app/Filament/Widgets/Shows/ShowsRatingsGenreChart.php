@@ -158,6 +158,7 @@ class ShowsRatingsGenreChart extends ApexChartWidget
             $genreWithAverageRating[] = $genre->getAverageRating(
                 (int)$this->filterFormData['minimumAmountReviews'],
                 (int)$this->filterFormData['maxAmountReviews'],
+                ['tvSeries']
             )['averageRating'];
         }
         return $genreWithAverageRating;

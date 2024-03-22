@@ -44,8 +44,15 @@ class Genre extends Model
         return $this->belongsToMany(Title::class, 'title_genres', 'genre_id', 'id');
     }
 
-    public function getAverageRating(int $minimalAmountReviews, int $maxAmountReviews): array
+    public function getAverageRating(int $minimalAmountReviews, int $maxAmountReviews, array $titleTypes = []): array
     {
+        if (empty($titleTypes)) {
+            $titleTypes = Title::query()
+            ->distinct('type')
+            ->pluck('type')
+            ->toArray();
+        }
+
         $result = DB::query()
             ->selectRaw("
             cast(sum(average_rating * number_votes) / sum(number_votes) as decimal(16, 2)) as genre_average_rating,
@@ -58,24 +65,10 @@ class Genre extends Model
             ->where('title_genres.genre_id', $this->id)
             ->where('model_has_ratings.number_votes', '>=', $minimalAmountReviews)
             ->where('model_has_ratings.number_votes', '<=', $maxAmountReviews)
+            ->whereIn('type', $titleTypes)
             ->get()
             ->toArray()[0];
-        dd($result);
-
-        $result = DB::select(
-            "SELECT
-                       cast(sum(average_rating * number_votes) / sum(number_votes) as decimal(16, 2)) as genre_average_rating,
-                       sum(number_votes) as sum_votes
-                  FROM titles
-                         INNER JOIN model_has_ratings
-                                    on titles.id = model_has_ratings.model_id
-                                        and model_has_ratings.model_type = 'App\Models\Title'
-                         INNER JOIN public.title_genres tg on titles.id = tg.title_id
-                  WHERE tg.genre_id = (SELECT id from genres where id = $this->id)
-                  AND model_has_ratings.number_votes >= $minimalAmountReviews
-                  AND model_has_ratings.number_votes <= $maxAmountReviews"
-        )[0];
-
+    
         return [
             'averageRating' => $result->genre_average_rating,
             'numberVotes' => $result->sum_votes
