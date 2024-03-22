@@ -27,6 +27,8 @@ class ShowsRatingsGenreChart extends ApexChartWidget
      */
     protected static ?string $heading = 'Gemiddelde recensie per genre';
 
+    protected static ?string $pollingInterval = null;
+
     /**
      * Chart options (series, labels, types, size, animations...)
      * https://apexcharts.com/docs/options
