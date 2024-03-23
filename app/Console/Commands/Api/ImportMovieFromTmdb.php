@@ -14,7 +14,7 @@ class ImportMovieFromTmdb extends Command
      *
      * @var string
      */
-    protected $signature = 'app:import-movies-from-tmdb {limitJobs?}';
+    protected $signature = 'app:import-movies-from-tmdb {limitJobs?} {--recordsToImport=}';
 
     /**
      * The console command description.
@@ -65,7 +65,7 @@ class ImportMovieFromTmdb extends Command
 
     private function createJobBatches(): array
     {
-        $amountOfTitles = Title::query()->count();
+        $amountOfTitles = (int)$this->option('recordsToImport') ?? Title::query()->count();
         $start = 1;
         $end = $amountOfTitles;
         $batchSize = $amountOfTitles / 50;
@@ -95,11 +95,9 @@ class ImportMovieFromTmdb extends Command
 
         /*If there's more then 50 requests to handle*/
         if ($end - $start + $increment >= $this->requestPerJob) {
-
             for ($i = 0; $i < $this->requestPerJob; $i++) {
                 $tmdbExternIds[] = $i + $start + $increment;
             }
-
         } else {
             for ($i = $start + $increment; $i <= $end; $i++) {
                 $tmdbExternIds[] = $i;
