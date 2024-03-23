@@ -21,40 +21,28 @@ def check_episode_exists(episode_imdb_externid, conn):
         result = cursor.fetchone()
         if result:
             print(f"Skipping already imported episode: {episode_imdb_externid}")
-            return 1
-        return 0
+            return True
+        return False
 
 
 def load_episodes(conn):
     start_time = datetime.now()
 
+    genres_with_ids = {}
     # Set data source
     url = URLS.TITLE_EPISODE.value
-    path = URLS.TITLE_EPISODE.value
+    path = PATHS.TITLE_EPISODE.value
 
     data_source = stream.fetch_source(path, url)
 
+    print("Start laden van episodedata...")
     try:
-        rows_added = 0
-        commit_count = 0
-
         for rows_processed, line in enumerate(data_source):
-
-            # If it's the first row, extract column names
             if rows_processed == 0:
                 COLUMN_NAMES = line
-                continue  # Skip processing the first row
+                continue
 
             row = dict(zip(COLUMN_NAMES, line))
-
-            title_id = get_parent_title_id(row['parentTconst'], conn)
-
-            if title_id is None:
-                continue
-
-            # Check if the film already exists in the database
-            if check_episode_exists(row['tconst'], conn):
-                continue
 
             with conn.cursor() as cursor:
                 cursor.execute("""
@@ -68,7 +56,17 @@ def load_episodes(conn):
                     row['episodeNumber'] if row['episodeNumber'] != '\\N' else None,
                 ))
 
-                print("Loaded new episode nr. " + str(rows_processed) + " with id: "+ row['tconst'])
+            title_id = get_parent_title_id(row['parentTconst'], conn)
+            if title_id is None:
+                print(f"Titel niet gevonden voor rij {rows_processed}: {row['parentTconst']}, probeer eerst de titles tabel in te laden")
+                continue
+
+            if check_episode_exists(row['tconst'], conn):
+                print(f"Aflevering reeds geïmporteerd: {row['tconst']}")
+                continue
+
+
+                print(f"Nieuwe aflevering geladen: {row['tconst']}")
                 result = cursor.fetchone()
                 if result is not None:
                     rows_added += 1
@@ -76,20 +74,18 @@ def load_episodes(conn):
                 commit_count += 1
                 if commit_count == 5000:
                     conn.commit()
-                    print("1000 episodes imported")
+                    print("5000 afleveringen geïmporteerd")
                     commit_count = 0
     except KeyboardInterrupt:
-        print("Process interrupted by keyboard")
+        print("Proces onderbroken door gebruiker")
     except psycopg2.Error as e:
         conn.rollback()
-        print("An error occurred during data processing:", e)
+        print("Er is een fout opgetreden tijdens het verwerken van de gegevens:", e)
     else:
         conn.commit()
 
-    print(str(rows_added) + " nieuwe rijen toegevoegd.")
-    end_time = datetime.now()
-    duration = end_time - start_time
-    print("Data ingeladen via stream in" + str(duration))
+    print(f"Totaal {rows_added} nieuwe rijen toegevoegd.")
+
 
 
 def execute():

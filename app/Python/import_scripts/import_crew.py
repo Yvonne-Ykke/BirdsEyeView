@@ -1,24 +1,26 @@
 from datetime import datetime
-import os
 import db_connector as db
 from enums.URLS import URLS
 from enums.PATHS import PATHS
 import actions.stream as stream
 import psycopg2
 
+# Constants
+COMMIT_THRESHOLD = 5000
+
 def load_crew(connection):
     """
     Load and process TSV data from a stream.
 
     Args:
-    conn (psycopg2.extensions.connection): A connection to the database.
+    connection (psycopg2.extensions.connection): A connection to the database.
 
     Returns:
     None
     """
     start_time = datetime.now()
 
-    # set data source
+    # Set data source
     url = URLS.TITLE_CREW.value
     path = PATHS.TITLE_CREW.value
     data_source = stream.fetch_source(path, url)
@@ -26,6 +28,8 @@ def load_crew(connection):
     try:
         rows_added = 0
         commit_count = 0
+
+        print("Start loading crew data...")
 
         for rows_processed, line in enumerate(data_source):
 
@@ -36,26 +40,29 @@ def load_crew(connection):
 
             row = dict(zip(COLUMN_NAMES, line))
 
-            # Controleer of de directors of writers leeg zijn
+            # Check if the movie has directors or writers
+            if row['directors'] != '\\N' or row['writers'] != '\\N':
+                # Get internal movie ID for tconst
+                movie_id = get_movie_id(connection, row['tconst'])
 
-            movie_has_directors = '\\N' != row['directors']
-            movie_has_writers = '\\N' != row['writers']
+                # Add directors to database
+                if row['directors'] != '\\N':
+                    directors = row['directors'].split(',')
+                    commit_count, rows_added = add_crew_to_database(connection, directors, movie_id, commit_count, "directors", rows_added)
 
-            if not movie_has_directors and not movie_has_writers:
-               continue
+                # Add writers to database
+                if row['writers'] != '\\N':
+                    writers = row['writers'].split(',')
+                    commit_count, rows_added = add_crew_to_database(connection, writers, movie_id, commit_count, "writers", rows_added)
+            else:
+                print("movie has no directors or writers")
 
-            # Haal interne id for tconst / film op
-            movie_id = get_movie_id(connection, row['tconst'])
+            # Commit changes if threshold reached
+            if commit_count >= COMMIT_THRESHOLD:
+                connection.commit()
+                print(f"{commit_count} changes committed to database")
+                commit_count = 0
 
-            # Regisseurs toevoegen aan database
-            if movie_has_directors:
-                directors = row['directors'].split(',')
-                commit_count, rows_added = add_crew_to_database(connection, directors, movie_id, commit_count, "directors", rows_added)
-
-            # Schrijvers toevoegen aan database
-            if movie_has_writers:
-                writers = row['writers'].split(',')
-                commit_count, rows_added = add_crew_to_database(connection, writers, movie_id, commit_count, "writers", rows_added)
     except KeyboardInterrupt:
         print("Process interrupted by keyboard")
     except psycopg2.Error as e:
@@ -64,27 +71,48 @@ def load_crew(connection):
     else:
         connection.commit()
 
-    print(str(rows_added) + " nieuwe rijen toegevoegd.")
+    print(str(rows_added) + " new rows added.")
     end_time = datetime.now()
     duration = end_time - start_time
-    print("Data ingalden via stream in " +  str(duration))
+    print("Data loaded via stream in " + str(duration))
 
 def add_crew_to_database(connection, crew_list, movie_id, commit_count, role, rows_added):
+    """
+    Add crew members to the database.
+
+    Args:
+    connection (psycopg2.extensions.connection): A connection to the database.
+    crew_list (list): List of crew members.
+    movie_id (int): Internal movie ID.
+    commit_count (int): Count of commits.
+    role (str): Role of the crew members.
+    rows_added (int): Count of rows added.
+
+    Returns:
+    tuple: Updated commit count and rows added.
+    """
     for crew_member in crew_list:
         people_id = get_people_id(connection, crew_member)
         if people_id and movie_id:
             add_crew_to_movie(connection, movie_id, people_id)
-            print(f"{commit_count} added crew " + str(people_id) + " to movie " + str(movie_id))
+            print(f"{commit_count} added {role}: {people_id} to movie {movie_id}")
             commit_count += 1
             rows_added += 1
-            if commit_count == 1000:
-                connection.commit()
-                print(f"{commit_count} {role} added to movies")
-                commit_count = 0
     return commit_count, rows_added
 
 def add_crew_to_movie(connection, movie_id, people_id):
-    # Model Type instellen
+    """
+    Add crew member to the movie in the database.
+
+    Args:
+    connection (psycopg2.extensions.connection): A connection to the database.
+    movie_id (int): Internal movie ID.
+    people_id (int): Internal people ID.
+
+    Returns:
+    None
+    """
+    # Set model type
     model_type = 'App\Models\Title'
 
     with connection.cursor() as cursor:
@@ -94,27 +122,52 @@ def add_crew_to_movie(connection, movie_id, people_id):
             """, (model_type, movie_id, people_id))
 
 def get_movie_id(connection, tconst):
-   with connection.cursor() as cursor:
-       # Query om film id op te halen aan de hand van de tconst
-       cursor.execute("SELECT id FROM titles WHERE imdb_externid = %s", (tconst,))
-       result = cursor.fetchone()
+    """
+    Get movie ID from the database based on tconst.
 
-       if result:
-           db_title_id = result[0]
-           return db_title_id
+    Args:
+    connection (psycopg2.extensions.connection): A connection to the database.
+    tconst (str): Movie tconst.
+
+    Returns:
+    int: Internal movie ID.
+    """
+    with connection.cursor() as cursor:
+        # Query to get movie id based on the tconst
+        cursor.execute("SELECT id FROM titles WHERE imdb_externid = %s", (tconst,))
+        result = cursor.fetchone()
+
+        if result:
+            db_title_id = result[0]
+            return db_title_id
 
 def get_people_id(connection, person_id):
-   with connection.cursor() as cursor:
-       # Query om people id op te halen aan de hand van de nmconst
-       cursor.execute("SELECT id FROM people WHERE imdb_externid = %s", (person_id,))
-       result = cursor.fetchone()
+    """
+    Get people ID from the database based on person ID.
 
-       if result:
-           people_id = result[0]
-           return people_id
+    Args:
+    connection (psycopg2.extensions.connection): A connection to the database.
+    person_id (str): Person ID.
+
+    Returns:
+    int: Internal people ID.
+    """
+    with connection.cursor() as cursor:
+        # Query to get people id based on the nmconst
+        cursor.execute("SELECT id FROM people WHERE imdb_externid = %s", (person_id,))
+        result = cursor.fetchone()
+
+        if result:
+            people_id = result[0]
+            return people_id
+        else:
+            print("Person is not inserted in people table")
 
 
 def execute():
+    """
+    Execute the script.
+    """
     connection = db.get_connection()
     load_crew(connection)
 

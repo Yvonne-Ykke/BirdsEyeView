@@ -73,8 +73,7 @@ def load_name_basics(conn):
                         INSERT INTO model_has_crew (model_type, model_id, people_id, person_is_known_for_model)
                         VALUES (%s, %s, %s, %s);
                         """, ('App\Models\Title', db_title_id, people_id, True))
-                    else:
-                        print("title_id is nog niet bekend: ", title_id)
+
 
                     for profession, profession_id in professions.items():
                         with conn.cursor() as cursor:
@@ -82,7 +81,11 @@ def load_name_basics(conn):
                                 INSERT INTO people_professions (people_id, profession_id)
                                 VALUES (%s, %s);
                             """, (people_id, profession_id))
-            print(f"All crew of movie {row['nconst']} inserted")
+
+                    if result:
+                        print(f"All crew of movie {row['nconst']} inserted")
+                    else:
+                        print("title_id is nog niet bekend: ", title_id)
 
     except KeyboardInterrupt:
         print("Process interrupted by keyboard")

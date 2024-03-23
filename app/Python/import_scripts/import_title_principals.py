@@ -7,6 +7,16 @@ from enums.PATHS import PATHS
 
 
 def get_person_id(imdb_extern_id, conn):
+    """
+    Get the internal ID of a person based on their IMDb external ID.
+
+    Args:
+    imdb_extern_id (str): IMDb external ID of the person.
+    conn (psycopg2.extensions.connection): A connection to the database.
+
+    Returns:
+    int or None: Internal ID of the person if found, otherwise None.
+    """
     with conn.cursor() as cursor:
         cursor.execute("SELECT id FROM people WHERE imdb_externid = %s;", (imdb_extern_id,))
         result = cursor.fetchone()
@@ -14,51 +24,59 @@ def get_person_id(imdb_extern_id, conn):
             return result[0]
         return None
 
-def get_person_id(imdb_extern_id, conn):
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT id FROM people WHERE imdb_externid = %s;", (imdb_extern_id,))
-        result = cursor.fetchone()
-        if result:
-            return result[0]
-        return None
 
 def title_exists(title, conn):
+    """
+    Check if a title exists in the database.
+
+    Args:
+    title (str): IMDb external ID of the title.
+    conn (psycopg2.extensions.connection): A connection to the database.
+
+    Returns:
+    int or None: Internal ID of the title if found, otherwise None.
+    """
     with conn.cursor() as cursor:
-        cursor.execute("SELECT id FROM titles WHERE imdb_externid = %s;",
-                       (title,))
+        cursor.execute("SELECT id FROM titles WHERE imdb_externid = %s;", (title,))
         result = cursor.fetchone()
         if result:
             return result[0]
     return None
 
 
-def load_episodes(conn):
+def load_principals(conn):
     start_time = datetime.now()
 
     # Set data source
-    url = URLS.TITLE_EPISODE.value
-    path = PATHS.TITLE_EPISODE.value
+    url = URLS.TITLE_PRINCIPALS.value
+    path = PATHS.TITLE_PRINCIPALS.value
 
     data_source = stream.fetch_source(path, url)
 
     try:
         rows_added = 0
         commit_count = 0
+        rows_processed = 0
 
-        for rows_processed, line in enumerate(data_source):
+        for rows_processed, line in enumerate(data_source, start=1):
 
             # If it's the first row, extract column names
-            if rows_processed == 0:
+            if rows_processed == 1:
                 COLUMN_NAMES = line
                 continue  # Skip processing the first row
 
             row = dict(zip(COLUMN_NAMES, line))
 
+
+
             if title_exists(row['parentTconst'], conn):
+                print(f"{rows_processed} parent title already exists")
                 continue
 
-            # Check if the film already exists in the database
-            if title_exists(row['tconst'], conn):
+            # Check if the series/film already exists in the database
+            title_id = title_exists(row['tconst'], conn)
+            if title_id is None:
+                print(f"{rows_processed} title already exists")
                 continue
 
             with conn.cursor() as cursor:
@@ -73,7 +91,7 @@ def load_episodes(conn):
                     row['episodeNumber'] if row['episodeNumber'] != '\\N' else None,
                 ))
 
-                print("Loaded principal nr. " + str(rows_processed) + " with id " + row['tconst'])
+                print(f"Loaded episode {row['tconst']} - Title ID: {title_id}")
                 result = cursor.fetchone()
                 if result is not None:
                     rows_added += 1
@@ -81,7 +99,7 @@ def load_episodes(conn):
                 commit_count += 1
                 if commit_count == 5000:
                     conn.commit()
-                    print("5000 films imported")
+                    print("5000 episodes imported")
                     commit_count = 0
 
     except psycopg2.Error as e:
@@ -90,14 +108,17 @@ def load_episodes(conn):
     else:
         conn.commit()
 
-    print(str(rows_added) + " nieuwe rijen toegevoegd.")
-    print(str(rows_processed) + " rijen totaal in database")
+    print(f"{rows_added} new rows added.")
+    print(f"{rows_processed} rows processed in total.")
     end_time = datetime.now()
     duration = end_time - start_time
-    print("Data ingeladen via stream in" + str(duration))
+    print(f"Data loaded via stream in {duration}")
 
 
 def execute():
+    """
+    Execute the script.
+    """
     connection = db.get_connection()
     load_episodes(connection)
 

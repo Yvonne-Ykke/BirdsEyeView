@@ -15,18 +15,21 @@ def get_title_id(imdb_extern_id, conn):
         return None
 
 
-def check_title_exists(title, title_id, conn):
+def check_title_exists(title, title_id, conn, rows_processed):
     with conn.cursor() as cursor:
         cursor.execute("SELECT id FROM alternate_titles WHERE title = %s AND title_id = %s;",
                        (title, title_id))
         result = cursor.fetchone()
-        if result:
-            print(f"Skipping already imported alternate title: {title}")
-            return 1
-        return 0
+        if result is not None:
+            print(f"{rows_processed} Skipping already imported alternate title: {title.rstrip()[:20]}...")
+            return True
+        return False
 
 
 def create_and_get_language_id(language_iso_6391, conn):
+    """
+    Create a new language entry if it doesn't exist in the database and return its id.
+    """
     with conn.cursor() as cursor:
         cursor.execute("""
                INSERT INTO languages (iso_6391)
@@ -34,12 +37,16 @@ def create_and_get_language_id(language_iso_6391, conn):
                ON CONFLICT (iso_6391) DO NOTHING
                RETURNING id;
             """, (language_iso_6391,))
-        genre_id = cursor.fetchone()
-        if genre_id:
-            return genre_id[0]
+        language_id = cursor.fetchone()
+        if language_id:
+            return language_id[0]
         else:
             cursor.execute("SELECT id FROM languages WHERE iso_6391 = %s;", (language_iso_6391,))
-            return cursor.fetchone()[0]
+            language_id = cursor.fetchone()
+            if language_id:
+                return language_id[0]
+            else:
+                return None
 
 
 def load_titles(conn):
@@ -65,8 +72,13 @@ def load_titles(conn):
             row = dict(zip(COLUMN_NAMES, line))
 
             title_id = get_title_id(row['titleId'], conn)
+
+            if title_id is None:
+                print(f"Title nr. {rows_processed} is not imported yet, alternate title can not be imported")
+                continue
+
             # Check if the film already exists in the database
-            if check_title_exists(row['title'], title_id, conn):
+            if check_title_exists(row['title'], title_id, conn, rows_processed):
                 continue
 
             if row['language'] == '\\N':
@@ -92,7 +104,7 @@ def load_titles(conn):
                     row['isOriginalTitle'] if row['types'] != '\\N' else bool(0)
                 ))
 
-                print("Loaded alternate title nr. " + str(rows_processed) + " named: " + row['title'].rstrip[:20])
+                print(f"{rows_processed} Loaded alternate title nr. {title_id} named: {row['title'].rstrip()[:20]}...")
                 result = cursor.fetchone()
                 if result is not None:
                     rows_added += 1
@@ -100,8 +112,8 @@ def load_titles(conn):
                 commit_count += 1
                 if commit_count == 5000:
                     conn.commit()
-                    print("1000 films imported")
                     commit_count = 0
+
     except KeyboardInterrupt:
         print("Process interrupted by keyboard")
     except psycopg2.Error as e:

@@ -8,13 +8,13 @@ import import_scripts.import_titles as titles
 
 def main():
 
-#   titles.execute()
-#  names.execute()
-#   alternate_titles.execute()
-#   episodes.execute() # ERROR
-#    crew.execute()
-#   ratings.execute()
-    principals.execute()
+  titles.execute()
+  names.execute()
+  alternate_titles.execute()
+  episodes.execute()
+  crew.execute()
+  ratings.execute()
+# principals.execute()
 
 if __name__ == "__main__":
     main()

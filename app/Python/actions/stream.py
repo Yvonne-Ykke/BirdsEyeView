@@ -53,6 +53,25 @@ def fetch_file(file_path):
     except Exception as e:
         print("Error occurred while reading TSV file:", e)
 
+def fetch_file_from_row(file_path, start_from_row, conn):
+    try:
+        with open(file_path, 'r', newline='', encoding='utf-8') as tsvfile:
+            reader = csv.reader(tsvfile, delimiter='\t')
+
+            # Eerste rij ophalen en teruggeven
+            first_row = next(reader)
+            yield first_row
+
+            # Doorgaan vanaf het opgegeven startpunt
+            for _ in range(start_from_row - 1):
+                next(reader)
+
+            # Rijen ophalen vanaf het startpunt en teruggeven
+            for row in reader:
+                print(row)
+                yield row
+    except Exception as e:
+        print("Error occurred while reading TSV file:", e)
 
 def fetch_source(path, url):
     return fetch_file(path)
