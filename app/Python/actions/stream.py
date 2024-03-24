@@ -68,7 +68,6 @@ def fetch_file_from_row(file_path, start_from_row, conn):
 
             # Rijen ophalen vanaf het startpunt en teruggeven
             for row in reader:
-                print(row)
                 yield row
     except Exception as e:
         print("Error occurred while reading TSV file:", e)

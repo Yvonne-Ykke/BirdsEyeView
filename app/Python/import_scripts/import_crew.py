@@ -93,7 +93,7 @@ def add_crew_to_database(connection, crew_list, movie_id, commit_count, role, ro
     """
     for crew_member in crew_list:
         people_id = get_people_id(connection, crew_member)
-        if people_id and movie_id:
+        if people_id is not None and movie_id is not None:
             add_crew_to_movie(connection, movie_id, people_id)
             print(f"{commit_count} added {role}: {people_id} to movie {movie_id}")
             commit_count += 1
