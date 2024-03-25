@@ -4,7 +4,7 @@ namespace App\Filament\Widgets\Genres;
 
 use App\Models\Genre;
 use App\Models\Title;
-use App\Support\Colors;
+use App\Support\Enums\Colors;
 use Carbon\Carbon;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Select;
