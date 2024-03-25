@@ -11,6 +11,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Set;
 use Filament\Support\RawJs;
+use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
@@ -31,7 +32,6 @@ class GenreRevenueTimelineChart extends ApexChartWidget
     protected static ?string $heading = 'Genre winst tijdlijn';
 
     protected static ?string $pollingInterval = null;
-    protected static ?string $loadingIndicator = 'Loading...';
 
     /**
      * Chart options (series, labels, types, size, animations...)
@@ -81,18 +81,11 @@ class GenreRevenueTimelineChart extends ApexChartWidget
             {
                 yaxis: {
                     labels: {
-                        formatter: function (val, index) {
+                        formatter: function(val, index) {
                             return val + ' mln'
                         }
                     }
-                },
-                tooltip: {
-                    x: {
-                        formatter: function (val) {
-                            return val + ' mln'
-                        }
-                    }
-                },
+                }
             }
     JS
         );
@@ -161,10 +154,10 @@ class GenreRevenueTimelineChart extends ApexChartWidget
         ];
     }
 
-//    protected function getLoadingIndicator(): null|string|View
-//    {
-//        return view('components.loading-icons.ball-clip-rotate-multiple');
-//    }
+    protected function getLoadingIndicator(): null|string|View
+    {
+        return view('components.loading-icons.ball-clip-rotate-multiple');
+    }
 
     private function getChartOptions(): array
     {

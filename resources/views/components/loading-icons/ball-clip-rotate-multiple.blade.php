@@ -175,7 +175,7 @@
     }
 </style>
 
-<div class="la-ball-clip-rotate-multiple la-dark">
+<div class="la-ball-clip-rotate-multiple">
     <div></div>
     <div></div>
 </div>

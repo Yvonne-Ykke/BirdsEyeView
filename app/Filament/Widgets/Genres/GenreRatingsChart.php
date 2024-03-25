@@ -8,6 +8,7 @@ use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Set;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
@@ -26,7 +27,7 @@ class GenreRatingsChart extends ApexChartWidget
      * @var string|null
      */
     protected static ?string $heading = 'Gemiddelde recensie per genre';
-    
+
     protected static ?string $pollingInterval = null;
 
     /**
@@ -153,6 +154,11 @@ class GenreRatingsChart extends ApexChartWidget
             ->where('name', '!=', 'Adult')
             ->get();
     }
+    protected function getLoadingIndicator(): null|string|View
+    {
+        return view('components.loading-icons.ball-clip-rotate-multiple');
+    }
+
 
     private function getChartData(Collection $genres, ): array
     {
