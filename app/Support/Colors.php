@@ -17,4 +17,26 @@ enum Colors: string
     case FUCHSIA = '#c026d3';
     case PINK = '#db2777';
     case ROSE = '#e11d48';
+
+    public static function getRandom($amount = 1): int|array|string
+    {
+        return array_rand(self::array(), $amount);
+    }
+
+    public static function array(): array
+    {
+        return array_combine(self::values(), self::names());
+    }
+
+    public static function names(): array
+    {
+        return array_column(self::cases(), 'name');
+    }
+
+    public static function values(): array
+    {
+        return array_column(self::cases(), 'value');
+    }
+
 }
+
