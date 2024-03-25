@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\GenreRevenueTimelineChart;
 use App\Filament\Widgets\Genres\AmountOfTitlesPerGenreChart;
 use App\Filament\Widgets\Genres\GenreRatingsChart;
 use Illuminate\Support\Facades\Route;
@@ -34,6 +35,7 @@ class GenreDashboard extends \Filament\Pages\Dashboard
     {
         return [
             GenreRatingsChart::class,
+            GenreRevenueTimelineChart::class,
             AmountOfTitlesPerGenreChart::class,
         ];
     }

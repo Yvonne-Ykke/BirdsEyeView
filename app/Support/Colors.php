@@ -20,7 +20,11 @@ enum Colors: string
 
     public static function getRandom($amount = 1): int|array|string
     {
-        return array_rand(self::array(), $amount);
+        $colors = array_rand(self::array(), $amount);
+        if (is_string($colors))
+            return [$colors];
+
+        return $colors;
     }
 
     public static function array(): array
