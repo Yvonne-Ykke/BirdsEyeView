@@ -2,9 +2,9 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Widgets\GenreRevenueTimelineChart;
 use App\Filament\Widgets\Genres\AmountOfTitlesPerGenreChart;
 use App\Filament\Widgets\Genres\GenreRatingsChart;
+use App\Filament\Widgets\Genres\GenreRevenueTimelineChart;
 use Illuminate\Support\Facades\Route;
 
 

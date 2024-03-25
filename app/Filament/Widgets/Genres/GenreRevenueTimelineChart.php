@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Filament\Widgets;
+namespace App\Filament\Widgets\Genres;
 
 use App\Models\Genre;
-use App\Models\Rating;
 use App\Models\Title;
 use App\Support\Colors;
 use Carbon\Carbon;
@@ -32,7 +31,7 @@ class GenreRevenueTimelineChart extends ApexChartWidget
     protected static ?string $heading = 'Genre winst tijdlijn';
 
     protected static ?string $pollingInterval = null;
-
+    protected static ?string $loadingIndicator = 'Loading...';
 
     /**
      * Chart options (series, labels, types, size, animations...)
@@ -42,6 +41,10 @@ class GenreRevenueTimelineChart extends ApexChartWidget
      */
     protected function getOptions(): array
     {
+        if (!$this->readyToLoad) {
+            return [];
+        }
+
         $options = $this->getChartOptions();
 
         return [
@@ -157,6 +160,11 @@ class GenreRevenueTimelineChart extends ApexChartWidget
                 }),
         ];
     }
+
+//    protected function getLoadingIndicator(): null|string|View
+//    {
+//        return view('components.loading-icons.ball-clip-rotate-multiple');
+//    }
 
     private function getChartOptions(): array
     {
