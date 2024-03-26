@@ -9,7 +9,7 @@ use Filament\Forms\Set;
 use Illuminate\Support\Collection;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class AmountOfTitlesPerGenre extends ApexChartWidget
+class AmountOfTitlesPerGenreChart extends ApexChartWidget
 {
     /**
      * Chart Id
@@ -24,6 +24,8 @@ class AmountOfTitlesPerGenre extends ApexChartWidget
      * @var string|null
      */
     protected static ?string $heading = 'Aantal titels per genre';
+
+    protected static ?string $pollingInterval = null;
 
     protected int | string | array $columnSpan = 2;
     /**
@@ -115,7 +117,7 @@ class AmountOfTitlesPerGenre extends ApexChartWidget
         $genresTitleSum = [];
         foreach ($genres as $genre) {
             $genresTitleSum[] = $this->getGenreTitleSum($genre);
-        };
+        }
 
         return $genresTitleSum;
     }

@@ -28,10 +28,10 @@ def load_name_basics(conn):
     # set data source
     url = URLS.NAME_BASICS.value
     path = PATHS.NAME_BASICS.value
-    data_source = stream.fetch_source(path, url)
+    data_source = stream.fetch_file_from_row(path, 0, url)
 
     try:
-        for line in data_source:
+        for rows_processed, line in enumerate(data_source):
             # If it's the first row, extract column names
             if rows_processed == 0:
                 COLUMN_NAMES = line
@@ -55,13 +55,14 @@ def load_name_basics(conn):
                           row['deathYear'] if row['deathYear'] != '\\N' else None))
 
                     result = cursor.fetchone()
-                    if result is not None:
-                        rows_added += 1
-                        print(f"Inserted person {row['nconst']}")
 
-                    # Check if title is already imported
-                    if result is None:
+                    title_already_exist = result is None
+
+                    if title_already_exist:
                         continue
+                    else:
+                        rows_added += 1
+                        print(f"Inserted person: {row['primaryName']}")
 
                     people_id = result[0]
 
@@ -73,7 +74,18 @@ def load_name_basics(conn):
                         INSERT INTO model_has_crew (model_type, model_id, people_id, person_is_known_for_model)
                         VALUES (%s, %s, %s, %s);
                         """, ('App\Models\Title', db_title_id, people_id, True))
-                        print(f"Inserted crew for person {row['nconst']}")
+                        print(f"Inserted crew for {row['primaryName']}")
+
+#                     # Verzamel de waarden voor batch-insert
+#                     values = [(people_id, profession_id) for profession_id in professions.values()]
+#
+#                     # Voer de batch-insert uit
+#                     cursor.executemany("""
+#                         INSERT INTO people_professions (people_id, profession_id)
+#                         VALUES (%s, %s);
+#                     """, values)
+
+                    print(f"Inserted {len(values)} professions for {row['primaryName']}")
 
                     for profession, profession_id in professions.items():
                         with conn.cursor() as cursor:
@@ -81,7 +93,7 @@ def load_name_basics(conn):
                                 INSERT INTO people_professions (people_id, profession_id)
                                 VALUES (%s, %s);
                             """, (people_id, profession_id))
-                            print(f"Inserted profession for person {row['nconst']}")
+                            print(f"Inserted profession {profession} for {row['primaryName']}")
 
             rows_processed += 1
 
@@ -113,10 +125,11 @@ def create_and_get_profession_id(profession, conn):
         """, (profession,))
         profession_id = cursor.fetchone()
         if profession_id:
-            print("created new profession")
+            print(f"created new profession: {profession} ")
             return profession_id[0]
         else:
             cursor.execute("SELECT id FROM professions WHERE name = %s;", (profession,))
+            print(f"fetched profession: {profession}")
             return cursor.fetchone()[0]
 
 def execute():

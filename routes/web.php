@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\RTestPage;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,8 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+//Route::get('/', function () {
+//    return view('welcome');
+//});
 
-Route::get('/test', \App\Livewire\RTestPage::class);
+Route::get('/test', RTestPage::class);

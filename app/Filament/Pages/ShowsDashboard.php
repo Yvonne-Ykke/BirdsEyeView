@@ -2,21 +2,20 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Widgets\Genres\AmountOfTitlesPerGenreChart;
-use App\Filament\Widgets\Genres\GenreRatingsChart;
+use App\Filament\Widgets\Shows\ShowsRatingsGenreChart;
 use Closure;
 use Illuminate\Support\Facades\Route;
 
 
-class GenreDashboard extends \Filament\Pages\Dashboard
+class ShowsDashboard extends \Filament\Pages\Dashboard
 {
-    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
-    protected static string $routePath = 'genre-dashboard';
+    protected static ?string $navigationIcon = 'heroicon-o-video-camera';
+    protected static string $routePath = 'shows-dashboard';
     protected static ?int $navigationSort = 0;
 
-    protected static ?string $navigationLabel = 'Genres';
+    protected static ?string $navigationLabel = 'Series';
 
-    protected static ?string $title = 'Genre dashboard';
+    protected static ?string $title = 'Series dashboard';
 
 
     public static function getNavigationLabel(): string
@@ -27,15 +26,14 @@ class GenreDashboard extends \Filament\Pages\Dashboard
     public static function getRoutes(): Closure
     {
         return function () {
-            Route::get('/genre-dashboard', static::class)->name(static::getSlug());
+            Route::get('/shows-dashboard', static::class)->name(static::getSlug());
         };
     }
 
     public function getWidgets(): array
     {
         return [
-            GenreRatingsChart::class,
-            AmountOfTitlesPerGenreChart::class,
+            ShowsRatingsGenreChart::class,
         ];
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Widgets\Genres;
+namespace App\Filament\Widgets\Shows;
 
 use App\Models\Genre;
 use App\Models\Rating;
@@ -11,7 +11,7 @@ use Filament\Forms\Set;
 use Illuminate\Support\Collection;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class GenreRatingsChart extends ApexChartWidget
+class ShowsRatingsGenreChart extends ApexChartWidget
 {
     /**
      * Chart Id
@@ -26,7 +26,7 @@ class GenreRatingsChart extends ApexChartWidget
      * @var string|null
      */
     protected static ?string $heading = 'Gemiddelde recensie per genre';
-    
+
     protected static ?string $pollingInterval = null;
 
     /**
@@ -161,6 +161,7 @@ class GenreRatingsChart extends ApexChartWidget
             $genreWithAverageRating[] = $genre->getAverageRating(
                 (int)$this->filterFormData['minimumAmountReviews'],
                 (int)$this->filterFormData['maxAmountReviews'],
+                ['tvSeries']
             )['averageRating'];
         }
         return $genreWithAverageRating;

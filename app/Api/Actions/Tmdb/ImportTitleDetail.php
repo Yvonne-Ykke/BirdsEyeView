@@ -4,6 +4,7 @@ namespace App\Api\Actions\Tmdb;
 
 use App\Api\Tmdb\TmdbApi;
 use App\Models\Genre;
+use App\Models\Rating;
 use App\Models\Title;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -25,6 +26,7 @@ class ImportTitleDetail
 
         $this->title = $this->saveTitle();
         $this->saveGenres();
+        $this->saveRating();
     }
 
     private function saveTitle()
@@ -57,5 +59,21 @@ class ImportTitleDetail
             );
             $this->title->genres()->attach($genre->id);
         }
+    }
+
+    private function saveRating(): void
+    {
+        Rating::updateOrCreate(
+            [
+                'model_type' => Title::class,
+                'model_id' => $this->title->id,
+            ],
+            [
+                'model_type' => Title::class,
+                'model_id' => $this->title->id,
+                'average_rating' => $this->result['vote_average'],
+                'number_votes' => $this->result['vote_count']
+            ]
+        );
     }
 }

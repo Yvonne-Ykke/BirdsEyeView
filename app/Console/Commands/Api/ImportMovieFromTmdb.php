@@ -14,7 +14,7 @@ class ImportMovieFromTmdb extends Command
      *
      * @var string
      */
-    protected $signature = 'app:import-movies-from-tmdb {limitJobs?}';
+    protected $signature = 'app:import-movies-from-tmdb {limitJobs?} {--recordsToImport=}';
 
     /**
      * The console command description.
@@ -23,6 +23,7 @@ class ImportMovieFromTmdb extends Command
      */
     protected $description = 'Imports movies from TMDB based on the amount of titles currently in the database';
 
+    private int $requestPerJob = 50;
 
     /**
      * Execute the console command.
@@ -45,7 +46,7 @@ class ImportMovieFromTmdb extends Command
         }
 
         if ($this->argument('limitJobs')) {
-            if ($increment >= $this->argument('limitJobs') * 50) {
+            if ($increment >= $this->argument('limitJobs') * $this->requestPerJob) {
                 return;
             }
         }
@@ -55,12 +56,16 @@ class ImportMovieFromTmdb extends Command
         ImportTmdbMoviesJob::dispatch($tmdbExternIds);
         echo "dispatched " . count($tmdbExternIds) . " jobs\n";
 
-        $this->dispatchJobs($start, $end, $increment + 50);
+        $this->dispatchJobs(
+            start: $start,
+            end: $end,
+            increment: $increment + $this->requestPerJob
+        );
     }
 
     private function createJobBatches(): array
     {
-        $amountOfTitles = Title::query()->count();
+        $amountOfTitles = (int)$this->option('recordsToImport') ?? Title::query()->count();
         $start = 1;
         $end = $amountOfTitles;
         $batchSize = $amountOfTitles / 50;
@@ -70,7 +75,7 @@ class ImportMovieFromTmdb extends Command
 
     private function batchNumbers($start, $end, $batchSize): array
     {
-        $batches = array();
+        $batches = [];
 
         for ($i = $start; $i <= $end; $i += $batchSize) {
             $batch = array(
@@ -88,14 +93,13 @@ class ImportMovieFromTmdb extends Command
     {
         $tmdbExternIds = [];
 
-        if ($end - $start + $increment >= 50) {
-            $numberToReach  = $increment + 50;
-            for ($i = $increment + 1; $i <= $numberToReach; $i++) {
-                $tmdbExternIds[] = $i;
+        /*If there's more then 50 requests to handle*/
+        if ($end - $start + $increment >= $this->requestPerJob) {
+            for ($i = 0; $i < $this->requestPerJob; $i++) {
+                $tmdbExternIds[] = $i + $start + $increment;
             }
-
         } else {
-            for ($i = 1; $i <= $end; $i++) {
+            for ($i = $start + $increment; $i <= $end; $i++) {
                 $tmdbExternIds[] = $i;
             }
         }

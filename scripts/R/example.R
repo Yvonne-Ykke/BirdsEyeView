@@ -1,5 +1,6 @@
 # Example file - generates a test csv output file
 # This can be used to check that R can be run from CLI and from PHP via Symfony process.
+
 library('dbplyr')
 library('dplyr')
 
@@ -18,8 +19,4 @@ users <- tbl(con, 'users') %>%
 
 # export csv file
 write.csv(users, "user-test.csv", row.names = FALSE)
-
-
-
-
 

@@ -5,8 +5,6 @@ from enums.URLS import URLS
 from enums.PATHS import PATHS
 import actions.stream as stream
 
-
-
 def load_titles(conn):
 
     start_time = datetime.now()
@@ -15,9 +13,7 @@ def load_titles(conn):
     # Set data source
     path = PATHS.TITLE_BASICS.value
     url = URLS.TITLE_BASICS.value
-    start = start_from(conn)
-    data_source = stream.fetch_file_from_row(path, start, conn)
-
+    data_source = stream.fetch_source(path, url)
 
     try:
         rows_added = 0
@@ -94,7 +90,7 @@ def load_titles(conn):
     except psycopg2.Error as e:
         conn.rollback()
         print("An error occurred during data processing:", e)
-        print('\a') # make a sound
+        print('\a')  # make a sound
     else:
         conn.commit()
 
@@ -103,6 +99,7 @@ def load_titles(conn):
     end_time = datetime.now()
     duration = end_time - start_time
     print("Data ingeladen via stream in " + str(duration))
+
 
 def create_and_get_genre_id(genre_name, conn):
     """
