@@ -4,7 +4,7 @@ from enum import Enum
 current_working_dir = os.getcwd()
 print("Current working directory:", current_working_dir)
 
-DATA_FOLDER = current_working_dir + "\\storage\\app\public\\"
+DATA_FOLDER = current_working_dir + "\\storage\\app\imdb_files\\decompressed\\"
 
 
 class PATHS(Enum):
