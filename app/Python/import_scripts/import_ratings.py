@@ -83,9 +83,9 @@ def load_ratings(conn):
                     rows_added += 1
 
                 commit_count += 1
-                if commit_count == 100:
+                if commit_count == 1000:
                     conn.commit()
-                    print("100 ratings imported")
+                    print("1000 ratings imported")
                     commit_count = 0
 
                 print(f"{rows_processed} Loaded rating {row.get('averageRating')} - Title ID: {title_id}")

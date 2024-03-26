@@ -6,18 +6,9 @@ import actions.stream as stream
 import psycopg2
 
 # Constants
-COMMIT_THRESHOLD = 5000
+COMMIT_THRESHOLD = 100
 
 def load_crew(connection):
-    """
-    Load and process TSV data from a stream.
-
-    Args:
-    connection (psycopg2.extensions.connection): A connection to the database.
-
-    Returns:
-    None
-    """
     start_time = datetime.now()
 
     # Set data source
@@ -77,20 +68,7 @@ def load_crew(connection):
     print("Data loaded via stream in " + str(duration))
 
 def add_crew_to_database(connection, crew_list, movie_id, commit_count, role, rows_added):
-    """
-    Add crew members to the database.
 
-    Args:
-    connection (psycopg2.extensions.connection): A connection to the database.
-    crew_list (list): List of crew members.
-    movie_id (int): Internal movie ID.
-    commit_count (int): Count of commits.
-    role (str): Role of the crew members.
-    rows_added (int): Count of rows added.
-
-    Returns:
-    tuple: Updated commit count and rows added.
-    """
     for crew_member in crew_list:
         people_id = get_people_id(connection, crew_member)
         if people_id is not None and movie_id is not None:
@@ -118,7 +96,8 @@ def add_crew_to_movie(connection, movie_id, people_id):
     with connection.cursor() as cursor:
         cursor.execute("""
             INSERT INTO model_has_crew (model_type, model_id, people_id)
-            VALUES (%s, %s, %s);
+            VALUES (%s, %s, %s)
+            ON CONFLICT (model_id, people_id) DO NOTHING;
             """, (model_type, movie_id, people_id))
 
 def get_movie_id(connection, tconst):

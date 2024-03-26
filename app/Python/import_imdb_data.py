@@ -8,13 +8,18 @@ import import_scripts.import_titles as titles
 
 
 def main():
+    # Eerst Titles draain
     # titles.execute()
-    # names.execute()
+
+    # Als Titles klaar is de volgende draaien eventueel in meerdere terminals
     # alternate_titles.execute()
-    ### episodes.execute()
-    ratings.execute()
+    # ratings.execute()
+
+    # Names moet je draaien voordat je crew of principals draait
+    # names.execute()
     # crew.execute()
-    # principals.execute()
+    principals.execute()
+    ### episodes.execute()
 
 
 if __name__ == "__main__":

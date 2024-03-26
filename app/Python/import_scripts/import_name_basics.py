@@ -21,7 +21,8 @@ def insert_person(conn, row):
             cursor.execute("""
                 INSERT INTO people (imdb_externid, name, birth_year, death_year)
                 VALUES (%s, %s, %s, %s)
-                ON CONFLICT (imdb_externid) DO NOTHING
+                ON CONFLICT (imdb_externid) DO UPDATE
+                SET deathYear = EXCLUDED.deathYear
                 RETURNING id;
             """, (
             row['nconst'],
