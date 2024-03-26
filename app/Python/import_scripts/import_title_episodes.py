@@ -44,10 +44,13 @@ def load_episodes(conn):
 
             row = dict(zip(COLUMN_NAMES, line))
 
+            insert_episode()
+
             with conn.cursor() as cursor:
                 cursor.execute("""
                     INSERT INTO title_episodes (title_id, imdb_externid, season_number, episode_number)
                     VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (title_id) DO NOTHING
                     RETURNING id;
                 """, (
                     title_id,

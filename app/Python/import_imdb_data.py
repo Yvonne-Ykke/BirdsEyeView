@@ -10,10 +10,10 @@ import import_scripts.import_titles as titles
 def main():
     # titles.execute()
     # names.execute()
-    alternate_titles.execute()
-    # episodes.execute()  # ERROR
+    # alternate_titles.execute()
+    ### episodes.execute()
+    ratings.execute()
     # crew.execute()
-    # ratings.execute()
     # principals.execute()
 
 

@@ -24,29 +24,6 @@ def get_title_id(imdb_extern_id, conn):
             return result[0]
         return None
 
-
-def check_rating(title_id, model_type, conn):
-    """
-    Check if a rating entry already exists for a title.
-
-    Args:
-    title_id (int): Internal ID of the title.
-    model_type (str): Type of the model (e.g., 'App\Models\Title').
-    conn (psycopg2.extensions.connection): A connection to the database.
-
-    Returns:
-    bool: True if a rating entry already exists, False otherwise.
-    """
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT id FROM model_has_ratings WHERE model_id = %s AND model_type = %s;",
-                       (title_id, model_type))
-        result = cursor.fetchone()
-        if result:
-            print(f"Skipping already imported rating for title ID: {title_id}")
-            return True
-        return False
-
-
 def load_ratings(conn):
     """
     Load ratings data from a stream and insert into the database.
@@ -84,14 +61,15 @@ def load_ratings(conn):
                 print(f"{rows_processed} This title does not exist yet in titles table")
                 continue
 
-            # Check if the rating entry already exists in the database
-            if check_rating(title_id, model_type, conn):
-                continue
-
             with conn.cursor() as cursor:
                 cursor.execute("""
                     INSERT INTO model_has_ratings (model_type, model_id, average_rating, number_votes)
                     VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (model_id)
+                    DO UPDATE
+                    Set
+                        average_rating = EXCLUDED.average_rating,
+                        number_votes = EXCLUDED.number_votes
                     RETURNING id;
                 """, (
                     model_type,
