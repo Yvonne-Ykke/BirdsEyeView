@@ -8,6 +8,62 @@ from enums.PATHS import PATHS
 
 import psycopg2
 
+def handle_professions(row, professions, conn):
+    for profession in row['primaryProfession'].split(','):
+        if profession not in professions:
+            profession_id = create_and_get_profession_id(profession, conn)
+            professions[profession] = profession_id
+    return professions
+
+def insert_person(conn, row):
+      with conn.cursor() as cursor:
+            # Query to get the people_id based on the title_id
+            cursor.execute("""
+                INSERT INTO people (imdb_externid, name, birth_year, death_year)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (imdb_externid) DO NOTHING
+                RETURNING id;
+            """, (
+            row['nconst'],
+            row['primaryName'],
+            row['birthYear'] if row['birthYear'] != '\\N' and row['birthYear'].isdigit() else None,
+            row['deathYear'] if row['deathYear'] != '\\N' and row['deathYear'].isdigit() else None
+            ))
+
+            person_data = cursor.fetchone()
+            if person_data:
+                person_id = person_data[0]
+                return person_id
+            else:
+                return None
+
+
+def insert_crew(conn, row, person_id, title_id):
+    with conn.cursor() as cursor:
+        cursor.execute("SELECT id FROM titles WHERE imdb_externid = %s", (title_id,))
+        result = cursor.fetchone()
+        if result:
+            db_title_id = result[0]
+            cursor.execute("""
+            INSERT INTO model_has_crew (model_type, model_id, people_id, person_is_known_for_model)
+            VALUES (%s, %s, %s, %s);
+            """, ('App\Models\Title', db_title_id, person_id, True))
+            print(f"Inserted crew for {row['primaryName']}")
+
+
+def insert_people_professions(conn, row, professions, person_id):
+    with conn.cursor() as cursor:
+        for profession_name in row['primaryProfession'].split(','):
+            if profession_name in professions:
+                profession_id = professions[profession_name]
+                cursor.execute("""
+                    INSERT INTO people_professions (people_id, profession_id)
+                    VALUES (%s, %s);
+                """, (person_id, profession_id))
+                print(f"Inserted profession '{profession_name}' for person with ID {person_id}")
+            else:
+                print(f"Profession '{profession_name}' not found in dictionary.")
+
 def load_name_basics(conn):
     """
     Load and process TSV data from a stream.
@@ -38,62 +94,19 @@ def load_name_basics(conn):
                 continue  # Skip processing the first row
 
             row = dict(zip(COLUMN_NAMES, line))
-            for profession in row['primaryProfession'].split(','):
-                if profession not in professions:
-                    profession_id = create_and_get_profession_id(profession, conn)
-                    professions[profession] = profession_id
+
+            professions = handle_professions(row, professions, conn)
 
             for title_id in row['knownForTitles'].split(','):
-                with conn.cursor() as cursor:
-                    # Query to get the people_id based on the title_id
-                    cursor.execute("""
-                        INSERT INTO people (imdb_externid, name, birth_year, death_year)
-                        VALUES (%s, %s, %s, %s)
-                        ON CONFLICT (imdb_externid) DO NOTHING
-                        RETURNING id;
-                    """, (row['nconst'], row['primaryName'],row['birthYear'] if row['birthYear'] != '\\N' and row['birthYear'].isdigit() else None,
-                          row['deathYear'] if row['deathYear'] != '\\N' else None))
+                person_id = insert_person(conn, row)
 
-                    result = cursor.fetchone()
+                if person_id:
+                    rows_added += 1
+                else:
+                    continue
 
-                    title_already_exist = result is None
-
-                    if title_already_exist:
-                        continue
-                    else:
-                        rows_added += 1
-                        print(f"Inserted person: {row['primaryName']}")
-
-                    people_id = result[0]
-
-                    cursor.execute("SELECT id FROM titles WHERE imdb_externid = %s", (title_id,))
-                    result = cursor.fetchone()
-                    if result:
-                        db_title_id = result[0]
-                        cursor.execute("""
-                        INSERT INTO model_has_crew (model_type, model_id, people_id, person_is_known_for_model)
-                        VALUES (%s, %s, %s, %s);
-                        """, ('App\Models\Title', db_title_id, people_id, True))
-                        print(f"Inserted crew for {row['primaryName']}")
-
-#                     # Verzamel de waarden voor batch-insert
-#                     values = [(people_id, profession_id) for profession_id in professions.values()]
-#
-#                     # Voer de batch-insert uit
-#                     cursor.executemany("""
-#                         INSERT INTO people_professions (people_id, profession_id)
-#                         VALUES (%s, %s);
-#                     """, values)
-
-                    print(f"Inserted {len(values)} professions for {row['primaryName']}")
-
-                    for profession, profession_id in professions.items():
-                        with conn.cursor() as cursor:
-                            cursor.execute("""
-                                INSERT INTO people_professions (people_id, profession_id)
-                                VALUES (%s, %s);
-                            """, (people_id, profession_id))
-                            print(f"Inserted profession {profession} for {row['primaryName']}")
+                insert_crew(conn, row, person_id, title_id)
+                insert_people_professions(conn, row, professions, person_id)
 
             rows_processed += 1
 
