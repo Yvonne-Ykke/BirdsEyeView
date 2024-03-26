@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class Title extends Model
 {
@@ -57,5 +58,11 @@ class Title extends Model
     public function rating(): MorphOne
     {
         return $this->morphOne(Rating::class, 'rateable', 'model_type', 'model_id');
+    }
+
+
+    public function crew(): MorphToMany
+    {
+        return $this->morphToMany(People::class, 'model', 'model_has_crew');
     }
 }

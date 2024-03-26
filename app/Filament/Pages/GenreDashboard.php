@@ -14,6 +14,7 @@ class GenreDashboard extends \Filament\Pages\Dashboard
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
     protected static string $routePath = 'genre-dashboard';
     protected static ?int $navigationSort = 0;
+    protected static ?string $navigationGroup = 'Dashboards';
 
     protected static ?string $navigationLabel = 'Genres';
 

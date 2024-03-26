@@ -40,7 +40,11 @@ class AdminPanelProvider extends PanelProvider
             ->sidebarCollapsibleOnDesktop()
             ->pages([])
             ->navigationGroups([
-                NavigationGroup::make('Users')
+                NavigationGroup::make('dashboards')
+                    ->label('Dashboards'),
+                NavigationGroup::make('resources')
+                    ->label('Overzichten'),
+                NavigationGroup::make('users')
                     ->label('Gebruikers'),
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
