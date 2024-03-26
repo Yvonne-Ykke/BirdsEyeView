@@ -3,30 +3,33 @@
 namespace App\Filament\Widgets\Genres;
 
 use App\Models\Genre;
-use App\Models\Rating;
+use App\Models\Title;
+use App\Support\Enums\Colors;
+use Carbon\Carbon;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Set;
+use Filament\Support\RawJs;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class GenreRatingsChart extends ApexChartWidget
+class GenreRevenueTimelineChart extends ApexChartWidget
 {
     /**
      * Chart Id
      *
      * @var string
      */
-    protected static string $chartId = 'genreRatingsChart';
+    protected static string $chartId = 'genreRevenueTimelineChart';
 
     /**
      * Widget Title
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Gemiddelde recensie per genre';
+    protected static ?string $heading = 'Genre winst tijdlijn';
 
     protected static ?string $pollingInterval = null;
 
@@ -38,25 +41,19 @@ class GenreRatingsChart extends ApexChartWidget
      */
     protected function getOptions(): array
     {
-        $genres = $this->getGenres();
-
         if (!$this->readyToLoad) {
             return [];
         }
 
+        $options = $this->getChartOptions();
+
         return [
             'chart' => [
-                'type' => 'bar',
+                'type' => 'line',
                 'height' => 300,
             ],
-            'series' => [
-                [
-                    'name' => 'Gemiddelde score',
-                    'data' => $this->getChartData($genres),
-                ],
-            ],
+            'series' => $options,
             'xaxis' => [
-                'categories' => $genres->pluck('name'),
                 'labels' => [
                     'style' => [
                         'fontFamily' => 'inherit',
@@ -69,11 +66,29 @@ class GenreRatingsChart extends ApexChartWidget
                         'fontFamily' => 'inherit',
                     ],
                 ],
-                'min' => 0,
-                'max' => 10,
             ],
-            'colors' => ['#f59e0b'],
+            'colors' => Colors::getRandom(count($options)),
+            'stroke' => [
+                'curve' => 'straight',
+                'width' => 3
+            ],
         ];
+    }
+
+    protected function extraJsOptions(): ?RawJs
+    {
+        return RawJs::make(<<<'JS'
+            {
+                yaxis: {
+                    labels: {
+                        formatter: function(val, index) {
+                            return val + ' mln'
+                        }
+                    }
+                }
+            }
+    JS
+        );
     }
 
     protected function getFormSchema(): array
@@ -86,7 +101,7 @@ class GenreRatingsChart extends ApexChartWidget
                     ->where('name', '!=', '\N')
                     ->pluck('name', 'id'))
                 ->live()
-                ->maxItems(10)
+                ->maxItems(5)
                 ->hintAction(
                     Action::make('clearField')
                         ->label('Reset')
@@ -100,10 +115,10 @@ class GenreRatingsChart extends ApexChartWidget
                 ->afterStateUpdated(function () {
                     $this->updateOptions();
                 }),
-            TextInput::make('minimumAmountReviews')
-                ->label('Minimaal aantal reviews')
+            TextInput::make('yearFrom')
+                ->label('Vanaf')
                 ->live()
-                ->default(0)
+                ->default(1950)
                 ->required()
                 ->numeric()
                 ->minValue(0)
@@ -112,25 +127,25 @@ class GenreRatingsChart extends ApexChartWidget
                         ->label('Reset')
                         ->icon('heroicon-m-trash')
                         ->action(function (Set $set) {
-                            $set('minimumAmountReviews', 0);
+                            $set('yearFrom', 1950);
                         })
                 )
                 ->afterStateUpdated(function () {
                     $this->updateOptions();
                 }),
-            TextInput::make('maxAmountReviews')
-                ->label('Maximaal aantal reviews')
+            TextInput::make('yearTill')
+                ->label('Tot')
                 ->live()
-                ->default(Rating::query()->max('number_votes'))
-                ->required()
                 ->minValue(0)
+                ->placeholder(Carbon::now()->year)
+                ->gt('yearFrom')
                 ->numeric()
                 ->hintAction(
                     Action::make('clearField')
                         ->label('Reset')
                         ->icon('heroicon-m-trash')
                         ->action(function (Set $set) {
-                            $set('maxAmountReviews', Rating::query()->max('number_votes'));
+                            $set('yearTill', null);
                         })
                 )
                 ->afterStateUpdated(function () {
@@ -139,36 +154,58 @@ class GenreRatingsChart extends ApexChartWidget
         ];
     }
 
-    private function getGenres(): \Illuminate\Database\Eloquent\Collection|array
-    {
-        if (!empty($this->filterFormData['genres'])) {
-            $genres = Genre::query()
-                ->whereIn('id', $this->filterFormData['genres']);
-        } else
-            $genres = Genre::query()
-                ->limit(10);
-
-        return $genres
-            ->orderBy('name')
-            ->where('name', '!=', '\N')
-            ->where('name', '!=', 'Adult')
-            ->get();
-    }
     protected function getLoadingIndicator(): null|string|View
     {
         return view('components.loading-icons.ball-clip-rotate-multiple');
     }
 
-
-    private function getChartData(Collection $genres, ): array
+    private function getChartOptions(): array
     {
-        $genreWithAverageRating = [];
+        $genres = $this->getGenres();
+        $options = [];
+        $i = 0;
         foreach ($genres as $genre) {
-            $genreWithAverageRating[] = $genre->getAverageRating(
-                (int)$this->filterFormData['minimumAmountReviews'],
-                (int)$this->filterFormData['maxAmountReviews'],
-            )['averageRating'];
+
+            $options[$i]['data'] = $this->getGenreRevenueTimeline($genre);
+            $options[$i]['name'] = $genre->name;
+            $i++;
         }
-        return $genreWithAverageRating;
+        return $options;
     }
+
+    private function getGenreRevenueTimeline(Genre $genre): array
+    {
+        $query = Title::query()
+            ->selectRaw('start_year as x, cast(sum(revenue - budget) / 1000000 as decimal(16)) as y')
+            ->join('title_genres', 'titles.id', '=', 'title_genres.title_id')
+            ->where('title_genres.genre_id', $genre->id)
+            ->where('start_year', '>=', $this->filterFormData['yearFrom']);
+
+        if ($this->filterFormData['yearTill']) {
+            $query->where('start_year', '<=', $this->filterFormData['yearTill']);
+        }
+
+        return $query->groupBy('start_year')
+            ->orderBy('start_year')
+            ->get()
+            ->toArray();
+    }
+
+    private function getGenres(): Collection|array
+    {
+        $query = Genre::query();
+
+        if ($this->filterFormData['genres']) {
+            $query->whereIn('id', $this->filterFormData['genres']);
+        } else {
+            $query->limit(3);
+        }
+
+        return $query
+            ->orderBy('name')
+            ->where('name', '!=', '\N')
+            ->where('name', '!=', 'Adult')
+            ->get();
+    }
+
 }

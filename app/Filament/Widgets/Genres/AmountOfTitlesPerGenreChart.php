@@ -6,6 +6,7 @@ use App\Models\Genre;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Set;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
@@ -96,6 +97,11 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget
                     $this->updateOptions();
                 }),
         ];
+    }
+
+    protected function getLoadingIndicator(): null|string|View
+    {
+        return view('components.loading-icons.ball-clip-rotate-multiple');
     }
 
     private function getGenres(): \Illuminate\Database\Eloquent\Collection|array

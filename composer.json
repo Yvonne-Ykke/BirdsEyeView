@@ -19,7 +19,8 @@
         "livewire/livewire": "^3.4",
         "spatie/laravel-activitylog": "^4.8",
         "spatie/laravel-permission": "^6.3",
-        "symfony/process": "^6.4"
+        "symfony/process": "^6.4",
+      "ext-zlib": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
