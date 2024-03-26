@@ -34,13 +34,6 @@ def load_titles(conn):
 
                 row = dict(zip(COLUMN_NAMES, line))
 
-                # Check if the film already exists in the database
-                cursor.execute("SELECT imdb_externid FROM titles WHERE imdb_externid = %s;", (row['tconst'],))
-                result = cursor.fetchone()
-                if result:
-                    print(f"{str(rows_processed)} Skipping already imported film: {row['primaryTitle'][:255]}")
-                    continue
-
                 # Check if 'genres' key exists in the row
                 if 'genres' in row:
                     genres = row['genres'].split(',')
