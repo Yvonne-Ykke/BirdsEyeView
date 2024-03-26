@@ -54,9 +54,13 @@ def load_titles(conn):
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (imdb_externid) DO UPDATE
                     SET
-                        start_year = excluded.start_year
-                        end_year = excluded.end_year
-                        type = excluded.type
+                        primary_title = excluded.primary_title,
+                        type = excluded.type,
+                        is_adult = excluded.is_adult,
+                        start_year = excluded.start_year,
+                        end_year = excluded.end_year,
+                        runtime_minutes = excluded.runtime_minutes,
+                        original_title = excluded.original_title
                     RETURNING id;
                 """, (row['tconst'],
                  row['primaryTitle'][:255],
