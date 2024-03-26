@@ -22,7 +22,7 @@ def insert_person(conn, row):
                 INSERT INTO people (imdb_externid, name, birth_year, death_year)
                 VALUES (%s, %s, %s, %s)
                 ON CONFLICT (imdb_externid) DO UPDATE
-                SET deathYear = EXCLUDED.deathYear
+                SET death_year = EXCLUDED.death_year
                 RETURNING id;
             """, (
             row['nconst'],
@@ -47,7 +47,8 @@ def insert_crew(conn, row, person_id, title_id):
             db_title_id = result[0]
             cursor.execute("""
             INSERT INTO model_has_crew (model_type, model_id, people_id, person_is_known_for_model)
-            VALUES (%s, %s, %s, %s);
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (model_id, people_id) DO NOTHING;
             """, ('App\Models\Title', db_title_id, person_id, True))
             print(f"Inserted crew for {row['primaryName']}")
 

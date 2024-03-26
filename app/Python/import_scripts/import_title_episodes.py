@@ -44,7 +44,7 @@ def load_episodes(conn):
 
             row = dict(zip(COLUMN_NAMES, line))
 
-            insert_episode()
+            insert_episode(conn, row)
 
             with conn.cursor() as cursor:
                 cursor.execute("""

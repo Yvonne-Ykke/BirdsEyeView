@@ -67,16 +67,14 @@ def load_principals(conn):
 
             row = dict(zip(COLUMN_NAMES, line))
 
-
-
             if title_exists(row['parentTconst'], conn):
-                print(f"{rows_processed} parent title already exists")
+                print(f"{rows_processed} parent title does not exists")
                 continue
 
-            # Check if the series/film already exists in the database
             title_id = title_exists(row['tconst'], conn)
+
             if title_id is None:
-                print(f"{rows_processed} title already exists")
+                print(f"{rows_processed} parent title does not exists in titles yet")
                 continue
 
             with conn.cursor() as cursor:

@@ -16,9 +16,12 @@ def main():
     # ratings.execute()
 
     # Names moet je draaien voordat je crew of principals draait
-    # names.execute()
+    names.execute()
+    # principals.execute() # TODO: KLEINE aanpassing in db zodat tconst ook mee kan
+    # TODO: Principals afmaken en in people profession stoppen.
+
     # crew.execute()
-    principals.execute()
+
     ### episodes.execute()
 
 
