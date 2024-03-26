@@ -46,7 +46,7 @@ class PeopleResource extends Resource
                             ->label('Sterfjaar')
                             ->inlineLabel(),
                         Forms\Components\TextInput::make('gender')
-                            ->label('Sterfjaar')
+                            ->label('Gender')
                             ->formatStateUsing(function ($state) {
                                 return match ($state) {
                                     1 => 'Vrouw',
