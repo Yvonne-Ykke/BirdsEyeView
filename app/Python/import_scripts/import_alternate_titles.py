@@ -15,17 +15,6 @@ def get_title_id(imdb_extern_id, conn):
         return None
 
 
-def check_title_exists(title, title_id, conn, rows_processed):
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT id FROM alternate_titles WHERE title = %s AND title_id = %s;",
-                       (title, title_id))
-        result = cursor.fetchone()
-        if result is not None:
-            print(f"{rows_processed} Skipping already imported alternate title: {title.rstrip()[:20]}...")
-            return True
-        return False
-
-
 def create_and_get_language_id(language_iso_6391, conn):
     """
     Create a new language entry if it doesn't exist in the database and return its id.
@@ -77,10 +66,6 @@ def load_titles(conn):
                 print(f"Title nr. {rows_processed} is not imported yet, alternate title can not be imported")
                 continue
 
-            # Check if the film already exists in the database
-            if check_title_exists(row['title'], title_id, conn, rows_processed):
-                continue
-
             if row['language'] == '\\N':
                 language_with_ids[row['language']] = None
 
@@ -92,25 +77,34 @@ def load_titles(conn):
                     INSERT INTO alternate_titles (title_id, language_id,
                     title, ordering, region, types, attributes, is_original_title)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (title_id, ordering) DO UPDATE
+                    SET
+                        title = EXCLUDED.title,
+                        language_id = EXCLUDED.language_id,
+                        ordering = EXCLUDED.ordering,
+                        region = EXCLUDED.region,
+                        types = EXCLUDED.types,
+                        attributes = EXCLUDED.attributes,
+                        is_original_title = EXCLUDED.is_original_title
                     RETURNING id;
                 """, (
                     title_id,
                     language_with_ids[row['language']],
                     row['title'][:255],
-                    row['ordering'] if row['types'] != '\\N' else None,
+                    row['ordering'] if row['ordering'] != '\\N' else None,
                     row['region'] if row['region'] != '\\N' else None,
                     row['types'] if row['types'] != '\\N' else None,
                     row['attributes'][:255] if row['attributes'] != '\\N' else None,
                     row['isOriginalTitle'] if row['types'] != '\\N' else bool(0)
                 ))
 
-                print(f"{rows_processed} Loaded alternate title nr. {title_id} named: {row['title'].rstrip()[:20]}...")
+                print(f"{rows_processed} Loaded alternate title nr. {title_id} [{row['ordering']}] named: {row['title'].rstrip()[:20]}...")
                 result = cursor.fetchone()
                 if result is not None:
                     rows_added += 1
 
                 commit_count += 1
-                if commit_count == 5000:
+                if commit_count == 100:
                     conn.commit()
                     commit_count = 0
 
