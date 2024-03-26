@@ -52,7 +52,11 @@ def load_titles(conn):
                 cursor.execute("""
                     INSERT INTO titles (imdb_externid, primary_title, type, is_adult, start_year, end_year, runtime_minutes, original_title)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (imdb_externid) DO NOTHING
+                    ON CONFLICT (imdb_externid) DO UPDATE
+                    SET
+                        start_year = excluded.start_year
+                        end_year = excluded.end_year
+                        type = excluded.type
                     RETURNING id;
                 """, (row['tconst'],
                  row['primaryTitle'][:255],
