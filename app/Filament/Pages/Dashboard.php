@@ -13,6 +13,7 @@ class Dashboard extends \Filament\Pages\Dashboard
 
     protected static ?int $navigationSort = -2;
     protected static ?string $navigationLabel = 'Home';
+    protected static ?string $navigationGroup = 'Dashboards';
     protected static ?string $title = 'Home';
 
     public static function getNavigationLabel(): string

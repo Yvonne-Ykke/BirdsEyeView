@@ -12,9 +12,8 @@ class ShowsDashboard extends \Filament\Pages\Dashboard
     protected static ?string $navigationIcon = 'heroicon-o-video-camera';
     protected static string $routePath = 'shows-dashboard';
     protected static ?int $navigationSort = 0;
-
     protected static ?string $navigationLabel = 'Series';
-
+    protected static ?string $navigationGroup = 'Dashboards';
     protected static ?string $title = 'Series dashboard';
 
 

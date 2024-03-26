@@ -4,6 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 
 class People extends Model
 {
@@ -40,4 +43,14 @@ class People extends Model
     protected $casts = [
 
     ];
+
+    public function professions(): BelongsToMany
+    {
+        return $this->belongsToMany(Profession::class, 'people_professions');
+    }
+
+    public function titles(): MorphToMany
+    {
+        return $this->morphedByMany(Title::class, 'model','model_has_crew');
+    }
 }

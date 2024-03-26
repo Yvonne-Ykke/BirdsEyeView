@@ -41,7 +41,8 @@ class PeoplePolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create_people');
+//        return $user->can('create_people');
+        return false;
     }
 
     /**
@@ -53,7 +54,8 @@ class PeoplePolicy
      */
     public function update(User $user, People $people): bool
     {
-        return $user->can('update_people');
+        return false;
+//        return $user->can('update_people');
     }
 
     /**
@@ -65,7 +67,8 @@ class PeoplePolicy
      */
     public function delete(User $user, People $people): bool
     {
-        return $user->can('delete_people');
+        return false;
+//        return $user->can('delete_people');
     }
 
     /**
@@ -76,7 +79,8 @@ class PeoplePolicy
      */
     public function deleteAny(User $user): bool
     {
-        return $user->can('delete_any_people');
+        return false;
+//        return $user->can('delete_any_people');
     }
 
     /**
@@ -88,7 +92,8 @@ class PeoplePolicy
      */
     public function forceDelete(User $user, People $people): bool
     {
-        return $user->can('force_delete_people');
+        return false;
+//        return $user->can('force_delete_people');
     }
 
     /**
@@ -99,7 +104,8 @@ class PeoplePolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return $user->can('force_delete_any_people');
+        return false;
+//        return $user->can('force_delete_any_people');
     }
 
     /**
@@ -111,7 +117,8 @@ class PeoplePolicy
      */
     public function restore(User $user, People $people): bool
     {
-        return $user->can('restore_people');
+        return false;
+//        return $user->can('restore_people');
     }
 
     /**
@@ -122,7 +129,8 @@ class PeoplePolicy
      */
     public function restoreAny(User $user): bool
     {
-        return $user->can('restore_any_people');
+        return false;
+//        return $user->can('restore_any_people');
     }
 
     /**
@@ -134,7 +142,8 @@ class PeoplePolicy
      */
     public function replicate(User $user, People $people): bool
     {
-        return $user->can('replicate_people');
+        return false;
+//        return $user->can('replicate_people');
     }
 
     /**
