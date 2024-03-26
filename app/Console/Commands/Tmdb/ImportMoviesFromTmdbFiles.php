@@ -39,6 +39,7 @@ class ImportMoviesFromTmdbFiles extends Command
         }
 
         $this->processFiles();
+        activity()->log('Import Tmdb-data');
     }
 
     private function processFiles(): void

@@ -4,11 +4,10 @@ namespace App\Console\Commands\Actions;
 
 use Illuminate\Support\Facades\Storage;
 
-class DeCompressTmdbFiles
+class DeCompressFiles
 {
-    public function __invoke(array $files): void
+    public function __invoke(array $files, bool $replaceFiles = false): void
     {
-
         foreach ($files as $file) {
             // Check if the file exists
             if (!Storage::exists($file)) {
@@ -26,9 +25,15 @@ class DeCompressTmdbFiles
             $outputFile = str_replace('.gz', '', $gzFile);
             $outputFile = str_replace('compressed', 'decompressed', $outputFile);
 
+
             if (file_exists($outputFile)) {
-                echo("Output file '{$outputFile}' already exists. Skipping decompression.\n");
-                return;
+                if (!$replaceFiles) {
+                    echo("Output file '{$outputFile}' already exists. Skipping decompression.\n");
+                    continue;
+                }
+
+                Storage::delete($outputFile);
+                echo 'Deleted ' . $file . ' to be replaced';
             }
 
             $this->processFile($gzFile, $outputFile);

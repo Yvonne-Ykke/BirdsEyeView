@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Tmdb;
 
-use App\Console\Commands\Actions\DeCompressTmdbFiles;
+use App\Console\Commands\Actions\DeCompressFiles;
 use App\Console\Commands\Support\Enums\TmdbFileEndpoints;
 use App\Support\Actions\FindOrCreateDirectory;
 use Carbon\Carbon;
@@ -43,7 +43,7 @@ class DownloadTmdbFiles extends Command
         app(FindOrCreateDirectory::class)('/tmdb_files/compressed');
         app(FindOrCreateDirectory::class)('/tmdb_files/decompressed');
         $this->downloadFiles();
-        app(DeCompressTmdbFiles::class)($this->files);
+        app(DeCompressFiles::class)($this->files);
     }
 
     /**

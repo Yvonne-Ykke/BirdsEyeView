@@ -2,13 +2,10 @@
 
 namespace App\Filament\Resources\PeopleResource\RelationManagers;
 
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class TitlesRelationManager extends RelationManager
 {
@@ -21,9 +18,7 @@ class TitlesRelationManager extends RelationManager
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('primary_title')
-                    ->required()
-                    ->maxLength(255),
+
             ]);
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\LatestImportStat;
 use Closure;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,7 @@ class Dashboard extends \Filament\Pages\Dashboard
     {
         return [
             AccountWidget::class,
+            LatestImportStat::class,
         ];
     }
 
