@@ -8,8 +8,8 @@ import import_scripts.import_titles as titles
 
 
 def main():
-    # titles.execute()
-    names.execute()
+    titles.execute()
+    # names.execute()
     # alternate_titles.execute()
     # episodes.execute()  # ERROR
     # crew.execute()
