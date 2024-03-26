@@ -17,8 +17,8 @@ def main():
 
     # Names moet je draaien voordat je crew of principals draait
     # names.execute()
-    crew.execute()
-    # principals.execute()
+    # crew.execute()
+    principals.execute()
     ### episodes.execute()
 
 
