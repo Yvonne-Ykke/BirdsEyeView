@@ -179,6 +179,8 @@ class GenreRevenueTimelineChart extends ApexChartWidget
             ->selectRaw('start_year as x, cast(sum(revenue - budget) / 1000000 as decimal(16)) as y')
             ->join('title_genres', 'titles.id', '=', 'title_genres.title_id')
             ->where('title_genres.genre_id', $genre->id)
+            ->where('revenue', '>', 0)
+            ->where('budget', '>', 0)
             ->where('start_year', '>=', $this->filterFormData['yearFrom']);
 
         if ($this->filterFormData['yearTill']) {
