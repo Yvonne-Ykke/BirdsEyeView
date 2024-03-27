@@ -13,6 +13,7 @@ use Filament\Forms\Set;
 use Filament\Support\RawJs;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Cache;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class GenreRevenueTimelineChart extends ApexChartWidget
@@ -183,14 +184,23 @@ class GenreRevenueTimelineChart extends ApexChartWidget
             ->where('budget', '>', 0)
             ->where('start_year', '>=', $this->filterFormData['yearFrom']);
 
+        $yearTillKey = '';
         if ($this->filterFormData['yearTill']) {
-            $query->where('start_year', '<=', $this->filterFormData['yearTill']);
+            $query->where('end_year', '<=', $this->filterFormData['yearTill']);
+            $yearTillKey = $this->filterFormData['yearTill'];
         }
 
-        return $query->groupBy('start_year')
-            ->orderBy('start_year')
-            ->get()
-            ->toArray();
+        $cacheKey = 'getGenreRevenueTimeline-'
+            . str_replace(' ', '-', $genre->name)
+            . '-' . $yearTillKey
+            . '-' . $this->filterFormData['yearFrom'];
+
+        return Cache::rememberForever($cacheKey, function () use ($query) {
+            return $query->groupBy('start_year')
+                ->orderBy('start_year')
+                ->get()
+                ->toArray();
+        });
     }
 
     private function getGenres(): Collection|array
