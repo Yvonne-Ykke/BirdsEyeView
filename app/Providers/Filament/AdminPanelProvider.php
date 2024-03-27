@@ -44,8 +44,8 @@ class AdminPanelProvider extends PanelProvider
                     ->label('Dashboards'),
                 NavigationGroup::make('resources')
                     ->label('Overzichten'),
-                NavigationGroup::make('users')
-                    ->label('Gebruikers'),
+                NavigationGroup::make('admin')
+                    ->label('Beheer'),
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->middleware([
