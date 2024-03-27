@@ -50,7 +50,7 @@ def insert_crew(conn, row, person_id, title_id):
             VALUES (%s, %s, %s, %s)
             ON CONFLICT (model_id, people_id) DO NOTHING;
             """, ('App\Models\Title', db_title_id, person_id, True))
-            print(f"Inserted crew for {row['primaryName']}")
+            print(f"Inserted crew for {row['primaryName']} for movie: {db_title_id}")
 
 
 def insert_people_professions(conn, row, professions, person_id):
@@ -60,9 +60,10 @@ def insert_people_professions(conn, row, professions, person_id):
                 profession_id = professions[profession_name]
                 cursor.execute("""
                     INSERT INTO people_professions (people_id, profession_id)
-                    VALUES (%s, %s);
+                    VALUES (%s, %s)
+                    ON CONFLICT (people_id, profession_id) DO NOTHING;
                 """, (person_id, profession_id))
-                print(f"Inserted profession '{profession_name}' for person with ID {person_id}")
+                print(f"Inserted profession '{profession_name}' for {row['primaryName']} with ID {person_id}")
             else:
                 print(f"Profession '{profession_name}' not found in dictionary.")
 
@@ -98,17 +99,17 @@ def load_name_basics(conn):
             row = dict(zip(COLUMN_NAMES, line))
 
             professions = handle_professions(row, professions, conn)
+            person_id = insert_person(conn, row)
+
+            if person_id:
+                rows_added += 1
+            else:
+               continue
+
+            insert_people_professions(conn, row, professions, person_id)
 
             for title_id in row['knownForTitles'].split(','):
-                person_id = insert_person(conn, row)
-
-                if person_id:
-                    rows_added += 1
-                else:
-                    continue
-
                 insert_crew(conn, row, person_id, title_id)
-                insert_people_professions(conn, row, professions, person_id)
 
             rows_processed += 1
 
@@ -136,6 +137,7 @@ def create_and_get_profession_id(profession, conn):
         cursor.execute("""
            INSERT INTO professions (name)
            VALUES (%s)
+           ON CONFLICT (name) do NOTHING
            RETURNING id;
         """, (profession,))
         profession_id = cursor.fetchone()
