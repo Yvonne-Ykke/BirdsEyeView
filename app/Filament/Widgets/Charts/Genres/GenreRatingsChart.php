@@ -10,6 +10,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Set;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class GenreRatingsChart extends ApexChartWidget
@@ -38,12 +39,12 @@ class GenreRatingsChart extends ApexChartWidget
      */
     protected function getOptions(): array
     {
-        $genres = $this->getGenres();
-
         if (!$this->readyToLoad) {
             return [];
         }
 
+        $genres = $this->getGenres();
+//        dd($genres);
         return [
             'chart' => [
                 'type' => 'bar',
@@ -155,13 +156,14 @@ class GenreRatingsChart extends ApexChartWidget
             ->where('name', '!=', 'Adult')
             ->get();
     }
+
     protected function getLoadingIndicator(): null|string|View
     {
         return view('components.loading-icons.ball-clip-rotate-multiple');
     }
 
 
-    private function getChartData(Collection $genres, ): array
+    private function getChartData(Collection $genres,): array
     {
         $genreWithAverageRating = [];
         foreach ($genres as $genre) {

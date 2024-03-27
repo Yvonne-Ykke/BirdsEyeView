@@ -1,5 +1,5 @@
 from datetime import datetime
-import os
+import os, sys
 import actions.stream as stream
 import db_connector as db
 from enum import Enum
@@ -8,6 +8,11 @@ from enums.PATHS import PATHS
 
 import psycopg2
 
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+import repositories.people_repository as people_repository
+
 def handle_professions(row, professions, conn):
     for profession in row['primaryProfession'].split(','):
         if profession not in professions:
@@ -15,43 +20,30 @@ def handle_professions(row, professions, conn):
             professions[profession] = profession_id
     return professions
 
-def insert_person(conn, row):
-      with conn.cursor() as cursor:
-            # Query to get the people_id based on the title_id
-            cursor.execute("""
-                INSERT INTO people (imdb_externid, name, birth_year, death_year)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (imdb_externid) DO UPDATE
-                SET death_year = EXCLUDED.death_year
-                RETURNING id;
-            """, (
-            row['nconst'],
-            row['primaryName'],
-            row['birthYear'] if row['birthYear'] != '\\N' and row['birthYear'].isdigit() else None,
-            row['deathYear'] if row['deathYear'] != '\\N' and row['deathYear'].isdigit() else None
-            ))
-
-            person_data = cursor.fetchone()
-            if person_data:
-                person_id = person_data[0]
-                return person_id
-            else:
-                return None
-
-
-def insert_crew(conn, row, person_id, title_id):
+def insert_crew(conn, row, person_id, title_id, person_is_known_for_model):
     with conn.cursor() as cursor:
         cursor.execute("SELECT id FROM titles WHERE imdb_externid = %s", (title_id,))
         result = cursor.fetchone()
         if result:
             db_title_id = result[0]
+
             cursor.execute("""
             INSERT INTO model_has_crew (model_type, model_id, people_id, person_is_known_for_model)
             VALUES (%s, %s, %s, %s)
-            ON CONFLICT (model_id, people_id) DO NOTHING;
-            """, ('App\Models\Title', db_title_id, person_id, True))
-            print(f"Inserted crew for {row['primaryName']} for movie: {db_title_id}")
+            ON CONFLICT (model_id, people_id) DO NOTHING
+            RETURNING id;
+            """, ('App\Models\Title', db_title_id, person_id, person_is_known_for_model))
+            print(f"Inserted crew for movie: {db_title_id}")
 
+            if result is not None:
+                crew_id = result[0]
+                return crew_id
+            else:
+                print("Crew insert mislukt, ID is niet opgehaald. (NAME BASICS SCRIPT)")
+                return None
+        else:
+            print("Film titel staat niet in de database.")
+            return None
 
 def insert_people_professions(conn, row, professions, person_id):
     with conn.cursor() as cursor:
@@ -99,7 +91,7 @@ def load_name_basics(conn):
             row = dict(zip(COLUMN_NAMES, line))
 
             professions = handle_professions(row, professions, conn)
-            person_id = insert_person(conn, row)
+            person_id = people_repository.insert_person(conn, row)
 
             if person_id:
                 rows_added += 1
@@ -109,7 +101,7 @@ def load_name_basics(conn):
             insert_people_professions(conn, row, professions, person_id)
 
             for title_id in row['knownForTitles'].split(','):
-                insert_crew(conn, row, person_id, title_id)
+                insert_crew(conn, row, person_id, title_id, True)
 
             rows_processed += 1
 
@@ -137,7 +129,7 @@ def create_and_get_profession_id(profession, conn):
         cursor.execute("""
            INSERT INTO professions (name)
            VALUES (%s)
-           ON CONFLICT (name) do NOTHING
+           ON CONFLICT (name) DO NOTHING
            RETURNING id;
         """, (profession,))
         profession_id = cursor.fetchone()

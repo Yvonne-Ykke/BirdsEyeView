@@ -8,21 +8,22 @@ import import_scripts.import_titles as titles
 
 
 def main():
-    # Eerst Titles draain
+    # Eerst Titles draaien
     # titles.execute()
 
     # Als Titles klaar is de volgende draaien eventueel in meerdere terminals
     # alternate_titles.execute()
     # ratings.execute()
+     episodes.execute()
 
     # Names moet je draaien voordat je crew of principals draait
-    names.execute()
-    # principals.execute() # TODO: KLEINE aanpassing in db zodat tconst ook mee kan
-    # TODO: Principals afmaken en in people profession stoppen.
+    # names.execute()
 
+    # Als laaste draaien:
+    # principals.execute()
     # crew.execute()
 
-    ### episodes.execute()
+
 
 
 if __name__ == "__main__":

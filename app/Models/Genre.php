@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class Genre extends Model
@@ -60,9 +61,17 @@ class Genre extends Model
             $query->whereIn('type', $titleTypes);
         }
 
-        $result = $query
-            ->get()
-            ->toArray()[0];
+        $titleTypesFilterKey = !empty($titleTypes)
+            ? implode('-', $titleTypes)
+            : '';
+
+        $cacheKey = 'genreGetAverageRating-' . $minimalAmountReviews . '-' . $maxAmountReviews . '-' . $titleTypesFilterKey;
+
+        $result = Cache::rememberForever($cacheKey, function () use ($query) {
+            return $query
+                ->get()
+                ->toArray()[0];
+        });
 
         return [
             'averageRating' => $result->genre_average_rating,
