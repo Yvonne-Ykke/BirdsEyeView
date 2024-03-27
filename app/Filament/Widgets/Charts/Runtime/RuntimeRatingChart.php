@@ -122,7 +122,6 @@ class RuntimeRatingChart extends ApexChartWidget
 
             ];
         }
-        #dd($options);
         return $options;
     }
 

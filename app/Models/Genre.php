@@ -109,11 +109,8 @@ class Genre extends Model
         }
 
         $results = $query
-            #->toSql()
            ->get()
            ->toArray(); 
-
-       # dd($results); 
 
         return $results;
     }

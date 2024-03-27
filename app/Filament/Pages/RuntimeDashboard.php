@@ -33,7 +33,7 @@ class RuntimeDashboard extends \Filament\Pages\Dashboard
     public function getWidgets(): array
     {
         return [
-            #RuntimeChart::class,
+            RuntimeChart::class,
             RuntimeRatingChart::class,
         ];
     }
