@@ -85,6 +85,7 @@ class GenreRatingsChart extends ApexChartWidget
                 ->label('Toon enkel')
                 ->options(Genre::all()
                     ->where('name', '!=', '\N')
+                    ->where('name', '!=', 'Adult')
                     ->pluck('name', 'id'))
                 ->live()
                 ->maxItems(10)
