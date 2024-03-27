@@ -3,11 +3,13 @@
 namespace App\Filament\Widgets\Charts\Genres;
 
 use App\Models\Genre;
+use Doctrine\DBAL\Query;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Set;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class AmountOfTitlesPerGenreChart extends ApexChartWidget
@@ -28,7 +30,8 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget
 
     protected static ?string $pollingInterval = null;
 
-    protected int | string | array $columnSpan = 2;
+    protected int|string|array $columnSpan = 2;
+
     /**
      * Chart options (series, labels, types, size, animations...)
      * https://apexcharts.com/docs/options
@@ -37,8 +40,6 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget
      */
     protected function getOptions(): array
     {
-        $genres = $this->getGenres();
-
         if (!$this->readyToLoad) {
             return [];
         }
@@ -51,11 +52,10 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget
             'series' => [
                 [
                     'name' => 'Aantal titels',
-                    'data' => $this->getChartData($genres),
+                    'data' => $this->getChartData(),
                 ],
             ],
             'xaxis' => [
-                'categories' => $genres->pluck('name'),
                 'labels' => [
                     'style' => [
                         'fontFamily' => 'inherit',
@@ -104,32 +104,30 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget
         return view('components.loading-icons.ball-clip-rotate-multiple');
     }
 
-    private function getGenres(): \Illuminate\Database\Eloquent\Collection|array
+    private function getChartData(): array
     {
-        if (!empty($this->filterFormData['genres'])) {
-            $genres = Genre::query()
-                ->whereIn('id', $this->filterFormData['genres']);
-        } else
-            $genres = Genre::query();
-
-        return $genres
-            ->orderBy('name')
+        $query = Genre::query()
+            ->selectRaw('count(title_id) as y, genres.name as x')
+            ->join('title_genres', 'genres.id', 'title_genres.genre_id')
             ->where('name', '!=', '\N')
-            ->get();
-    }
+            ->where('name', '!=', 'Adult')
+            ->orderByDesc('y')
+            ->groupBy(['genre_id', 'name']);
 
-    private function getChartData(Collection $genres): array
-    {
-        $genresTitleSum = [];
-        foreach ($genres as $genre) {
-            $genresTitleSum[] = $this->getGenreTitleSum($genre);
+
+        $titleGenreFilterKey = '';
+        if (!empty($this->filterFormData['genres'])) {
+            $query->whereIn('id', $this->filterFormData['genres']);
+
+            $titleGenreFilterKey = !empty($this->filterFormData['genres'])
+                ? implode('-', $this->filterFormData['genres'])
+                : '';
         }
 
-        return $genresTitleSum;
-    }
-
-    private function getGenreTitleSum(Genre $genre): int
-    {
-        return $genre->titles()->count();
+        $cacheKey = 'AmountOfTitlesPerGenreChart-' . $titleGenreFilterKey;
+        return Cache::rememberForever($cacheKey, function () use ($query) {
+            return $query->get()
+                ->toArray();
+        });
     }
 }
