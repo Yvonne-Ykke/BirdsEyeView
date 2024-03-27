@@ -126,24 +126,12 @@ class RuntimeRatingChart extends ApexChartWidget
         return $options;
     }
 
-    private function getChartData(): array
-    {
-        $genreWithRuntimeRating = [];
-
-        foreach ($this->getGenres() as $genre) {
-            $genreWithRuntimeRating[] = $this->getRuntimeRating(
-                $genre->id)['averageRuntimeRating'];
-        }
-
-        return $genreWithRuntimeRating;
-    }
-
     private function getGenres(): Collection|array
     {
         $query = Genre::query();
 
         if ($this->filterFormData['genres']) {
-            $query->whereIn('id', $this->filterFormData['genres']);
+            $query->where('id', $this->filterFormData['genres']);
         } else {
             $query->limit(1);
         }
