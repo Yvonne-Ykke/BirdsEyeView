@@ -69,7 +69,7 @@ class RuntimeRatingChart extends ApexChartWidget
                     ],
                 ],
             ],
-            'colors' => Colors::RED->value,
+            'colors' => Colors::getRandom(count($genreWithRuntimeRating)),
             'stroke' => [
                 'curve' => 'straight',
                 'width' => 3
@@ -81,6 +81,7 @@ class RuntimeRatingChart extends ApexChartWidget
     {
         return [
             Select::make('genres')
+            ->multiple()
                 ->label('Toon enkel')
                 ->options(Genre::all()
                     ->where('name', '!=', '\N')
@@ -89,6 +90,7 @@ class RuntimeRatingChart extends ApexChartWidget
                     ->where('name', '!=', 'Short')
                     ->pluck('name', 'id'))
                 ->live()
+                ->maxItems(1)
                 ->hintAction(
                     Action::make('clearField')
                         ->label('Reset')
@@ -143,7 +145,7 @@ class RuntimeRatingChart extends ApexChartWidget
         $query = Genre::query();
 
         if ($this->filterFormData['genres']) {
-            $query->where('id', $this->filterFormData['genres']);
+            $query->whereIn('id', $this->filterFormData['genres']);
         } else {
             $query->limit(1);
         }
