@@ -7,10 +7,12 @@ use App\Models\Rating;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Set;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class GenreRatingsChart extends ApexChartWidget
@@ -43,8 +45,6 @@ class GenreRatingsChart extends ApexChartWidget
             return [];
         }
 
-        $genres = $this->getGenres();
-//        dd($genres);
         return [
             'chart' => [
                 'type' => 'bar',
@@ -53,11 +53,11 @@ class GenreRatingsChart extends ApexChartWidget
             'series' => [
                 [
                     'name' => 'Gemiddelde score',
-                    'data' => $this->getChartData($genres),
+                    'data' => $this->getChartData(),
                 ],
             ],
             'xaxis' => [
-                'categories' => $genres->pluck('name'),
+//                'categories' => $genres->pluck('name'),
                 'labels' => [
                     'style' => [
                         'fontFamily' => 'inherit',
@@ -80,6 +80,14 @@ class GenreRatingsChart extends ApexChartWidget
     protected function getFormSchema(): array
     {
         return [
+            Toggle::make('sort')
+                ->label('Sorteer hoog -> laag')
+                ->required()
+                ->live()
+                ->default(true)
+                ->afterStateUpdated(function () {
+                    $this->updateOptions();
+                }),
             Select::make('genres')
                 ->multiple()
                 ->label('Toon enkel')
@@ -98,10 +106,7 @@ class GenreRatingsChart extends ApexChartWidget
                         })
                 )
                 ->native(false)
-                ->searchable()
-                ->afterStateUpdated(function () {
-                    $this->updateOptions();
-                }),
+                ->searchable(),
             TextInput::make('minimumAmountReviews')
                 ->label('Minimaal aantal reviews')
                 ->live()
@@ -137,24 +142,9 @@ class GenreRatingsChart extends ApexChartWidget
                 )
                 ->afterStateUpdated(function () {
                     $this->updateOptions();
-                }),
+                })
+                ->helperText('Door grote hoeveelheid data kunnen deze filters traag zijn (10-15s)'),
         ];
-    }
-
-    private function getGenres(): \Illuminate\Database\Eloquent\Collection|array
-    {
-        if (!empty($this->filterFormData['genres'])) {
-            $genres = Genre::query()
-                ->whereIn('id', $this->filterFormData['genres']);
-        } else
-            $genres = Genre::query()
-                ->limit(10);
-
-        return $genres
-            ->orderBy('name')
-            ->where('name', '!=', '\N')
-            ->where('name', '!=', 'Adult')
-            ->get();
     }
 
     protected function getLoadingIndicator(): null|string|View
@@ -163,15 +153,54 @@ class GenreRatingsChart extends ApexChartWidget
     }
 
 
-    private function getChartData(Collection $genres,): array
+    private function getChartData(): array
     {
-        $genreWithAverageRating = [];
-        foreach ($genres as $genre) {
-            $genreWithAverageRating[] = $genre->getAverageRating(
-                (int)$this->filterFormData['minimumAmountReviews'],
-                (int)$this->filterFormData['maxAmountReviews'],
-            )['averageRating'];
+
+        $query = DB::query()
+            ->selectRaw("cast(sum(average_rating * number_votes) / sum(number_votes) as decimal(16, 2)) as y, genres.name as x")
+            ->from('titles')
+            ->join('model_has_ratings', 'titles.id', '=', 'model_has_ratings.model_id')
+            ->join('title_genres', 'titles.id', '=', 'title_genres.title_id')
+            ->join('genres', 'title_genres.genre_id', '=', 'genres.id')
+            ->where('model_has_ratings.number_votes', '>=', (int)$this->filterFormData['minimumAmountReviews'],)
+            ->where('model_has_ratings.number_votes', '<=', (int)$this->filterFormData['maxAmountReviews'])
+            ->where('genres.name', '!=', '\n')
+            ->where('genres.name', '!=', 'Adult')
+            ->where('genres.name', '!=', 'undefined')
+            ->groupBy('genres.name');
+
+        if (!empty($this->filterFormData['genres'])) {
+            $query->whereIn('genres.id', $this->filterFormData['genres']);
+        } else {
+            $query->limit(10);
         }
-        return $genreWithAverageRating;
+
+        if ($this->filterFormData['sort']) {
+            $query->orderByDesc('y');
+        } else {
+            $query->orderBy('y');
+        }
+
+        $cacheKey = $this->getCacheKey();
+        return Cache::rememberForever($cacheKey, function () use ($query) {
+            return $query
+                ->get()
+                ->toArray();
+        });
+
+    }
+
+    private function getCacheKey(): string
+    {
+        $titleGenresFilterKey = !empty($this->filterFormData['genres'])
+            ? implode('-', $this->filterFormData['genres'])
+            : '';
+
+        return 'genreGetAverageRating-'
+            . $this->filterFormData['minimumAmountReviews']
+            . '-' . $this->filterFormData['maxAmountReviews']
+            . '-' . ($this->filterFormData['sort'] ? 'desc' : 'asc')
+            . '-' . $titleGenresFilterKey;
+
     }
 }

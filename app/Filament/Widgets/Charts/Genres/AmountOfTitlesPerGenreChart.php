@@ -94,6 +94,7 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget
                 )
                 ->native(false)
                 ->searchable()
+                ->maxItems(15)
                 ->afterStateUpdated(function () {
                     $this->updateOptions();
                 }),
@@ -112,13 +113,14 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget
             ->join('title_genres', 'genres.id', 'title_genres.genre_id')
             ->where('name', '!=', '\N')
             ->where('name', '!=', 'Adult')
+            ->where('name', '!=', 'undefined')
             ->orderByDesc('y')
             ->groupBy(['genre_id', 'name']);
 
 
         $titleGenreFilterKey = '';
         if (!empty($this->filterFormData['genres'])) {
-            $query->whereIn('id', $this->filterFormData['genres']);
+            $query->whereIn('genres.id', $this->filterFormData['genres']);
 
             $titleGenreFilterKey = !empty($this->filterFormData['genres'])
                 ? implode('-', $this->filterFormData['genres'])
