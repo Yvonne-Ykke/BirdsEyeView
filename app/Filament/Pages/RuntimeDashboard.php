@@ -11,8 +11,8 @@ class RuntimeDashboard extends \Filament\Pages\Dashboard
 {
     protected static ?string $navigationIcon = 'heroicon-o-clock';
     protected static string $routePath = 'runtime-dashboard';
-    protected static ?int $navigationSort = 0;
-
+    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationGroup = 'Dashboards';
     protected static ?string $navigationLabel = 'Runtime';
 
     protected static ?string $title = 'Runtime dashboard';
