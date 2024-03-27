@@ -101,6 +101,7 @@ class Genre extends Model
             ->where('title_genres.genre_id', $this->id)
             ->whereNotNull('number_votes')
             ->where('number_votes', '>', 0)
+            ->where('runtime_minutes', '<', 500)
             ->whereNotNull('runtime_minutes')
             ->groupBy(DB::raw('(runtime_minutes / 5) * 5'));
 
