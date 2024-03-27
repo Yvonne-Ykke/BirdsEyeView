@@ -11,17 +11,27 @@ class ProcessMovieTmdbFile
     {
         $json = fopen(Storage::path($file), 'r');
         $i = 0;
+        $batchI = 0;
+        $batch = [];
 
         while (!feof($json)) {
             $data = json_decode(fgets($json), true);
+
             if (!$data) continue;
 
-            ImportTmdbMoviesJob::dispatch([$data['id']]);
+            $batch[] = $data['id'];
 
+            if ($batchI >= 50) {
+                ImportTmdbMoviesJob::dispatch($batch);
+                $batchI = 0;
+                $batch = [];
+            }
+            
             if ($i >= 1000) {
                 echo "queued 1000 movies \n";
                 $i = 0;
             }
+            $batchI++;
             $i++;
         }
 
