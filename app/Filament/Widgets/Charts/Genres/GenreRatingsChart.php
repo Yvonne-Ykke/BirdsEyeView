@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Widgets\Genres;
+namespace App\Filament\Widgets\Charts\Genres;
 
 use App\Models\Genre;
 use App\Models\Rating;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Widgets\People;
+namespace App\Filament\Widgets\Charts\People;
 
 use App\Models\Genre;
 use App\Models\People;

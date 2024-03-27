@@ -2,7 +2,7 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Widgets\LatestImportStat;
+use App\Filament\Widgets\Stats\LatestImportStat;
 use Closure;
 use Filament\Widgets\AccountWidget;
 use Illuminate\Support\Facades\Route;
