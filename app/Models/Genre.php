@@ -69,4 +69,52 @@ class Genre extends Model
             'numberVotes' => $result->sum_votes
         ];
     }
+
+    public function getAverageRuntime(array $titleTypes = []): array
+    {
+        $query = DB::query()
+            ->selectRaw("cast(sum(runtime_minutes) / count(runtime_minutes) as decimal(16, 2)) as genre_average_runtime")
+            ->from('titles')
+            ->join('title_genres', 'titles.id', '=', 'title_genres.title_id')
+            ->where('title_genres.genre_id', $this->id);
+
+        if (!empty($titleTypes)) {
+            $query->whereIn('type', $titleTypes);
+        }
+
+        $result = $query
+            ->get()
+            ->toArray()[0];
+
+        return [
+            'averageRuntime' => $result->genre_average_runtime,
+        ];
+    }
+
+    public function getRuntimeRating(array $titleTypes = []): array
+    {
+        $query = DB::query()
+            ->selectRaw("cast(sum(average_rating * number_votes) / sum(number_votes) as decimal(16, 2)) as y, (runtime_minutes / 5) * 5 AS x")
+            ->from('titles')
+            ->join('model_has_ratings', 'titles.id', '=', 'model_has_ratings.model_id')
+            ->join('title_genres', 'titles.id', '=', 'title_genres.title_id')
+            ->where('title_genres.genre_id', $this->id)
+            ->whereNotNull('number_votes')
+            ->where('number_votes', '>', 0)
+            ->whereNotNull('runtime_minutes')
+            ->groupBy(DB::raw('(runtime_minutes / 5) * 5'));
+
+        if (!empty($titleTypes)) {
+            $query->whereIn('type', $titleTypes);
+        }
+
+        $results = $query
+            #->toSql()
+           ->get()
+           ->toArray(); 
+
+       # dd($results); 
+
+        return $results;
+    }
 }

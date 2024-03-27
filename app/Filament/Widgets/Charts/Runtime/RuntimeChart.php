@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Filament\Widgets\Charts\Shows;
+namespace App\Filament\Widgets\Charts\Runtime;
 
 use App\Models\Genre;
-use App\Models\Rating;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -11,14 +10,14 @@ use Filament\Forms\Set;
 use Illuminate\Support\Collection;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class ShowsRatingsGenreChart extends ApexChartWidget
+class RuntimeChart extends ApexChartWidget
 {
     /**
      * Chart Id
      *
      * @var string
      */
-    protected static string $chartId = 'genreRatingsChart';
+    protected static string $chartId = 'runtimeChart';
 
     protected int | string | array $columnSpan = 2;
 
@@ -27,7 +26,7 @@ class ShowsRatingsGenreChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Gemiddelde recensie per genre';
+    protected static ?string $heading = 'Gemiddelde runtime per genre';
 
     protected static ?string $pollingInterval = null;
 
@@ -52,7 +51,7 @@ class ShowsRatingsGenreChart extends ApexChartWidget
             ],
             'series' => [
                 [
-                    'name' => 'Gemiddelde score',
+                    'name' => 'Gemiddelde runtime',
                     'data' => $this->getChartData($genres),
                 ],
             ],
@@ -71,7 +70,7 @@ class ShowsRatingsGenreChart extends ApexChartWidget
                     ],
                 ],
                 'min' => 0,
-                'max' => 10,
+                'max' => 150,
             ],
             'colors' => ['#f59e0b'],
         ];
@@ -85,7 +84,9 @@ class ShowsRatingsGenreChart extends ApexChartWidget
                 ->label('Toon enkel')
                 ->options(Genre::all()
                     ->where('name', '!=', '\N')
+                    ->where('name', '!=', '')
                     ->where('name', '!=', 'Adult')
+                    ->where('name', '!=', 'Short')
                     ->pluck('name', 'id'))
                 ->live()
                 ->maxItems(10)
@@ -102,42 +103,6 @@ class ShowsRatingsGenreChart extends ApexChartWidget
                 ->afterStateUpdated(function () {
                     $this->updateOptions();
                 }),
-            TextInput::make('minimumAmountReviews')
-                ->label('Minimaal aantal reviews')
-                ->live()
-                ->default(0)
-                ->required()
-                ->numeric()
-                ->minValue(0)
-                ->hintAction(
-                    Action::make('clearField')
-                        ->label('Reset')
-                        ->icon('heroicon-m-trash')
-                        ->action(function (Set $set) {
-                            $set('minimumAmountReviews', 0);
-                        })
-                )
-                ->afterStateUpdated(function () {
-                    $this->updateOptions();
-                }),
-            TextInput::make('maxAmountReviews')
-                ->label('Maximaal aantal reviews')
-                ->live()
-                ->default(Rating::query()->max('number_votes'))
-                ->required()
-                ->minValue(0)
-                ->numeric()
-                ->hintAction(
-                    Action::make('clearField')
-                        ->label('Reset')
-                        ->icon('heroicon-m-trash')
-                        ->action(function (Set $set) {
-                            $set('maxAmountReviews', Rating::query()->max('number_votes'));
-                        })
-                )
-                ->afterStateUpdated(function () {
-                    $this->updateOptions();
-                }),
         ];
     }
 
@@ -148,25 +113,26 @@ class ShowsRatingsGenreChart extends ApexChartWidget
                 ->whereIn('id', $this->filterFormData['genres']);
         } else
             $genres = Genre::query()
-                ->limit(10);
+                ;
 
         return $genres
             ->orderBy('name')
             ->where('name', '!=', '\N')
             ->where('name', '!=', 'Adult')
+            ->where('name', '!=', 'Short')
+            ->has('titles')
             ->get();
     }
 
-    private function getChartData(Collection $genres, ): array
+    private function getChartData(Collection $runtime, ): array
     {
-        $genreWithAverageRating = [];
-        foreach ($genres as $genre) {
-            $genreWithAverageRating[] = $genre->getAverageRating(
-                (int)$this->filterFormData['minimumAmountReviews'],
-                (int)$this->filterFormData['maxAmountReviews'],
-                ['tvSeries']
-            )['averageRating'];
-        }
-        return $genreWithAverageRating;
+        $genreWithAverageRuntime = [];
+        foreach ($runtime as $runtime) {
+            if ($runtime != null) {
+            $genreWithAverageRuntime[] = $runtime->getAverageRuntime(
+            ['movie']
+            )['averageRuntime'];
+        }}
+        return $genreWithAverageRuntime;
     }
 }

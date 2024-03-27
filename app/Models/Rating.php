@@ -4,7 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\DB;
 
 class Rating extends Model
 {
@@ -24,8 +25,8 @@ class Rating extends Model
         'number_votes',
     ];
 
-    public function rateable(): MorphTo
+    public function ratings(): BelongsToMany
     {
-        return $this->morphTo();
+        return $this->belongsToMany(Title::class, 'title_genres', 'genre_id', 'title_id');
     }
 }
