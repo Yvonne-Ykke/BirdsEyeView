@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands\Actions;
+namespace App\Console\Commands\Support\Actions;
 
 use Illuminate\Support\Facades\Storage;
 

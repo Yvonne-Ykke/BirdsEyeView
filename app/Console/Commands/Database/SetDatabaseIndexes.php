@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Console\Commands;
+namespace App\Console\Commands\Database;
 
 use Illuminate\Console\Command;
 
-class RemoveDatabaseIndexes extends Command
+class SetDatabaseIndexes extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'app:remove-database-indexes';
+    protected $signature = 'app:set-database-indexes';
 
     /**
      * The console command description.

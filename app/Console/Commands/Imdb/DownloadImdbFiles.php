@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Imdb;
 
-use App\Console\Commands\Actions\DeCompressFiles;
+use App\Console\Commands\Support\Actions\DeCompressFiles;
 use App\Console\Commands\Support\Enums\ImdbFileEndpoints;
 use App\Support\Actions\FindOrCreateDirectory;
 use GuzzleHttp\Client;

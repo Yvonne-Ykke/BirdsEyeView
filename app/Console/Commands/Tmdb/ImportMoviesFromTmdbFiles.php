@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands\Tmdb;
 
-use App\Console\Commands\Actions\ProcessMovieTmdbFile;
-use App\Console\Commands\Actions\ProcessProductionCompanyFile;
+use App\Console\Commands\Support\Actions\ProcessMovieTmdbFile;
+use App\Console\Commands\Support\Actions\ProcessProductionCompanyFile;
 use App\Console\Commands\Support\Enums\TmdbFileEndpoints;
 use App\Support\Actions\GetFilesFromDirectory;
 use Illuminate\Console\Command;

@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands\Tmdb;
 
-use App\Console\Commands\Actions\DeCompressFiles;
+use App\Console\Commands\Support\Actions\DeCompressFiles;
 use App\Console\Commands\Support\Enums\TmdbFileEndpoints;
 use App\Support\Actions\FindOrCreateDirectory;
 use Carbon\Carbon;
