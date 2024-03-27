@@ -6,9 +6,21 @@
 
 > npm run build
 
+> copy .env-example to .env
+
 > php artisan key:generate
 
-> Setup env variables
+> Setup .env variables
+
+    APP_NAME=BirdsEyeView
+    APP_URL=https://birds-eye-view.test/
+
+    DB_CONNECTION=pgsql
+    DB_HOST=127.0.0.1
+    DB_PORT=5432 (or personal port)
+    DB_DATABASE=birds_eye_view
+    DB_USERNAME= <username>
+    DB_PASSWORD= <password>
 
 > php artisan migrate
 
@@ -36,13 +48,15 @@
 
 # Python script gebruiken
 
-## check op updates / database wijzigingen via terminal
+Graag een kleinere dataset met alleen films? Skip naar tmdb kopje
+
+### check op updates / database wijzigingen via terminal
 
 > git pull
 
 > php artisan migrate
 
-## Installeer dependencies voor tsv inladen in de terminal
+### Installeer dependencies voor tsv inladen in de terminal
 
 > pip install psycopg2
 
@@ -52,23 +66,42 @@
 
 > pip install truncate
 
-## Data op de juiste plek
+### Data op de juiste plek
 
-Verplaats je tsv bestanden naar 'storage/app/public' in dit BirdEyeView project
+> php artisan app:download-imdb-files
 
-## Path aanpassen
-
-Pas onderin het importMovies.py-script het relatieve path aan naar jou eventuele folder en bestands naam:
-relative_path_to_movie_data = 'storage/app/public/title.basics.tsv/data.tsv'
-
-## voer het import script uit
+### voer het import script uit
 
 > python app/Python/importMovies.py
 
-## Queue driver instellen
+# Tmdb
 
-> php artisan migrate
+### Queue driver instellen
 
 > in .ENV de setting QUEUE_CONNECTION=database
 
 > in terminal: php artisan queue:work
+
+### data importeren
+
+#### Gelimiteerd aantal film data
+> php artisan app:import-movies-from-tmdb --recordsToImport= <aantal records te importeren>, moet groter zijn dan 100
+
+#### Alle data
+> php artisan app:import-movies-from-tmdb-files
+
+
+Alleen geïnteresseerd in films of production companies?
+
+> php artisan app:import-movies-from-tmdb-files --only=movie
+
+> php artisan app:import-movies-from-tmdb-files --only=company
+
+
+### Alle gewenste data geïmporteerd?
+
+> php artisan app:set-database-indexes
+
+### Toch niet? Even indexes weghalen voor snellere import.
+
+> app:drop-database-indexes

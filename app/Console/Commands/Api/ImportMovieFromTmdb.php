@@ -30,6 +30,17 @@ class ImportMovieFromTmdb extends Command
      */
     #[NoReturn] public function handle(): void
     {
+        if ($this->option('recordsToImport')) {
+            if (!is_numeric($this->option('recordsToImport'))) {
+                $this->error('Records to import value is not a number');
+                return;
+            }
+
+            if ($this->option('recordsToImport') < 100) {
+                $this->error('Cant import less than 100 records');
+                return;
+            }
+        }
         $jobBatches = $this->createJobBatches();
 
         foreach ($jobBatches as $batch) {
