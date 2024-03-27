@@ -22,18 +22,14 @@ class DeCompressFiles
             }
 
             $gzFile = Storage::path($file);
-            $outputFile = str_replace('.gz', '', $gzFile);
-            $outputFile = str_replace('compressed', 'decompressed', $outputFile);
+            $outputFile = $this->getOutputFile($gzFile);
 
+            if (is_array($outputFile)) {
+                continue;
+            }
 
-            if (file_exists($outputFile)) {
-                if (!$replaceFiles) {
-                    echo("Output file '{$outputFile}' already exists. Skipping decompression.\n");
-                    continue;
-                }
-
-                Storage::delete($outputFile);
-                echo 'Deleted ' . $file . ' to be replaced';
+            if ($this->checkOutputFileExists($file, $outputFile, $replaceFiles)) {
+                continue;
             }
 
             $this->processFile($gzFile, $outputFile);
@@ -41,6 +37,21 @@ class DeCompressFiles
             echo("File '{$file}' decompressed to '{$outputFile}'.\n");
         }
 
+    }
+
+    private function checkOutputFileExists(string $file, string $outputFile, bool $replaceFiles): bool
+    {
+        if (file_exists($outputFile)) {
+            if (!$replaceFiles) {
+                echo("Output file '{$outputFile}' already exists. Skipping decompression.\n");
+                return true;
+            }
+
+            Storage::delete($outputFile);
+            echo 'Deleted ' . $file . ' to be replaced';
+        }
+
+        return false;
     }
 
     private function processFile($gzFile, $outputFile): void
@@ -55,5 +66,14 @@ class DeCompressFiles
 
         gzclose($gz);
         fclose($output);
+    }
+
+    private function getOutputFile(string $gzFile): array|string
+    {
+        return str_replace(
+            search: 'compressed',
+            replace: 'decompressed',
+            subject: str_replace('.gz', '', $gzFile)
+        );
     }
 }
