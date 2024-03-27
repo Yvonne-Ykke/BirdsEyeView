@@ -1,34 +1,40 @@
 <?php
 
-namespace App\Filament\Widgets\Charts\Genres;
+namespace App\Filament\Widgets\Charts\Runtime;
 
 use App\Models\Genre;
+use App\Models\Title;
+use App\Support\Enums\Colors;
+use Carbon\Carbon;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Set;
+use Filament\Support\RawJs;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class AmountOfTitlesPerGenreChart extends ApexChartWidget
+class RuntimeRatingChart extends ApexChartWidget
 {
     /**
      * Chart Id
      *
      * @var string
      */
-    protected static string $chartId = 'AmountOfTitlesPerGenre';
+    protected static string $chartId = 'runtimeRatingChart';
 
     /**
      * Widget Title
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Aantal titels per genre';
+    protected static ?string $heading = 'Rating van films met verschillende runtimes';
+
+    protected int|string|array $columnSpan = 2;
 
     protected static ?string $pollingInterval = null;
 
-    protected int | string | array $columnSpan = 2;
     /**
      * Chart options (series, labels, types, size, animations...)
      * https://apexcharts.com/docs/options
@@ -37,25 +43,19 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget
      */
     protected function getOptions(): array
     {
-        $genres = $this->getGenres();
-
         if (!$this->readyToLoad) {
             return [];
         }
 
+        $genreWithRuntimeRating = $this->getChartOptions();
+
         return [
             'chart' => [
-                'type' => 'bar',
+                'type' => 'line',
                 'height' => 300,
             ],
-            'series' => [
-                [
-                    'name' => 'Aantal titels',
-                    'data' => $this->getChartData($genres),
-                ],
-            ],
+            'series' => $genreWithRuntimeRating,
             'xaxis' => [
-                'categories' => $genres->pluck('name'),
                 'labels' => [
                     'style' => [
                         'fontFamily' => 'inherit',
@@ -69,7 +69,11 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget
                     ],
                 ],
             ],
-            'colors' => ['#f59e0b'],
+            'colors' => Colors::getRandom(count($genreWithRuntimeRating)),
+            'stroke' => [
+                'curve' => 'straight',
+                'width' => 3
+            ],
         ];
     }
 
@@ -77,16 +81,17 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget
     {
         return [
             Select::make('genres')
-                ->multiple()
                 ->label('Toon enkel')
                 ->options(Genre::all()
                     ->where('name', '!=', '\N')
+                    ->where('name', '!=', '')
                     ->where('name', '!=', 'Adult')
+                    ->where('name', '!=', 'Short')
                     ->pluck('name', 'id'))
                 ->live()
                 ->hintAction(
                     Action::make('clearField')
-                        ->label('Reset invoerveld')
+                        ->label('Reset')
                         ->icon('heroicon-m-trash')
                         ->action(function (Set $set) {
                             $set('genres', []);
@@ -105,32 +110,36 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget
         return view('components.loading-icons.ball-clip-rotate-multiple');
     }
 
-    private function getGenres(): \Illuminate\Database\Eloquent\Collection|array
+    private function getChartOptions(): array
     {
-        if (!empty($this->filterFormData['genres'])) {
-            $genres = Genre::query()
-                ->whereIn('id', $this->filterFormData['genres']);
-        } else
-            $genres = Genre::query();
+        $genres = $this->getGenres();
+        $options = [];
 
-        return $genres
+        foreach ($genres as $genre) {
+            $options[] = [
+                'data' => $genre->getRuntimeRating(),
+                'name' => $genre->name,
+
+            ];
+        }
+        return $options;
+    }
+
+    private function getGenres(): Collection|array
+    {
+        $query = Genre::query();
+
+        if ($this->filterFormData['genres']) {
+            $query->where('id', $this->filterFormData['genres']);
+        } else {
+            $query->limit(1);
+        }
+
+        return $query
             ->orderBy('name')
             ->where('name', '!=', '\N')
+            ->where('name', '!=', 'Adult')
             ->get();
     }
 
-    private function getChartData(Collection $genres): array
-    {
-        $genresTitleSum = [];
-        foreach ($genres as $genre) {
-            $genresTitleSum[] = $this->getGenreTitleSum($genre);
-        }
-
-        return $genresTitleSum;
-    }
-
-    private function getGenreTitleSum(Genre $genre): int
-    {
-        return $genre->titles()->count();
-    }
 }
