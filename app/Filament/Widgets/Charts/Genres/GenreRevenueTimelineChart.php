@@ -2,6 +2,8 @@
 
 namespace App\Filament\Widgets\Charts\Genres;
 
+use App\Filament\Widgets\DefaultFilters\GenreFilter;
+use App\Filament\Widgets\DefaultFilters\TitleTypesFilter;
 use App\Models\Genre;
 use App\Models\Title;
 use App\Support\Enums\Colors;
@@ -12,6 +14,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Set;
 use Filament\Support\RawJs;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
@@ -95,28 +98,12 @@ class GenreRevenueTimelineChart extends ApexChartWidget
     protected function getFormSchema(): array
     {
         return [
-            Select::make('genres')
-                ->multiple()
-                ->label('Toon enkel')
-                ->options(Genre::all()
-                    ->where('name', '!=', '\N')
-                    ->where('name', '!=', 'Adult')
-                    ->pluck('name', 'id'))
-                ->live()
+            GenreFilter::get()
                 ->maxItems(5)
-                ->hintAction(
-                    Action::make('clearField')
-                        ->label('Reset')
-                        ->icon('heroicon-m-trash')
-                        ->action(function (Set $set) {
-                            $set('genres', []);
-                        })
-                )
-                ->native(false)
-                ->searchable()
                 ->afterStateUpdated(function () {
                     $this->updateOptions();
                 }),
+            TitleTypesFilter::get(),
             TextInput::make('yearFrom')
                 ->label('Vanaf')
                 ->live()
@@ -166,6 +153,7 @@ class GenreRevenueTimelineChart extends ApexChartWidget
         $genres = $this->getGenres();
         $options = [];
         $i = 0;
+
         foreach ($genres as $genre) {
 
             $options[$i]['data'] = $this->getGenreRevenueTimeline($genre);
@@ -177,31 +165,30 @@ class GenreRevenueTimelineChart extends ApexChartWidget
 
     private function getGenreRevenueTimeline(Genre $genre): array
     {
-        $query = Title::query()
-            ->selectRaw('start_year as x, cast(sum(revenue - budget) / 1000000 as decimal(16)) as y')
-            ->join('title_genres', 'titles.id', '=', 'title_genres.title_id')
-            ->where('title_genres.genre_id', $genre->id)
-            ->where('revenue', '>', 0)
-            ->where('budget', '>', 0)
-            ->where('start_year', '>=', $this->filterFormData['yearFrom']);
+        $query = $this->buildQuery($genre);
 
-        $yearTillKey = '';
-        if ($this->filterFormData['yearTill']) {
-            $query->where('end_year', '<=', $this->filterFormData['yearTill']);
-            $yearTillKey = $this->filterFormData['yearTill'];
-        }
-
-        $cacheKey = 'getGenreRevenueTimeline-'
-            . str_replace(' ', '-', $genre->name)
-            . '-' . $yearTillKey
-            . '-' . $this->filterFormData['yearFrom'];
-
+        $cacheKey = $this->getCacheKey($genre);
         return Cache::rememberForever($cacheKey, function () use ($query) {
             return $query->groupBy('start_year')
                 ->orderBy('start_year')
                 ->get()
                 ->toArray();
         });
+    }
+
+    private function getCacheKey(Genre $genre): string
+    {
+        $yearTillKey = $this->filterFormData['yearTill'] ?? '' ;
+
+        $titleTypesFilterKey = !empty($this->filterFormData['titleTypes'])
+            ? implode('-', $this->filterFormData['titleTypes'])
+            : '';
+
+        return 'getGenreRevenueTimeline-'
+            . str_replace(' ', '-', $genre->name)
+            . '-' . $yearTillKey
+            . '-' . $this->filterFormData['yearFrom']
+            . '-' . $titleTypesFilterKey;
     }
 
     private function getGenres(): Collection|array
@@ -219,6 +206,27 @@ class GenreRevenueTimelineChart extends ApexChartWidget
             ->where('name', '!=', '\N')
             ->where('name', '!=', 'Adult')
             ->get();
+    }
+
+    private function buildQuery(Genre $genre): Builder
+    {
+        $query = Title::query()
+            ->selectRaw('start_year as x, cast(sum(revenue - budget) / 1000000 as decimal(16)) as y')
+            ->join('title_genres', 'titles.id', '=', 'title_genres.title_id')
+            ->where('title_genres.genre_id', $genre->id)
+            ->where('revenue', '>', 0)
+            ->where('budget', '>', 0)
+            ->where('start_year', '>=', $this->filterFormData['yearFrom']);
+
+        if ($this->filterFormData['yearTill']) {
+            $query->where('end_year', '<=', $this->filterFormData['yearTill']);
+        }
+
+        if (!empty($this->filterFormData['titleTypes'])) {
+            $query->whereIn('titles.type', $this->filterFormData['titleTypes']);
+        }
+
+        return $query;
     }
 
 }
