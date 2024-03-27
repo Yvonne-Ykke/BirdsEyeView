@@ -26,7 +26,7 @@ class ProcessMovieTmdbFile
                 $batchI = 0;
                 $batch = [];
             }
-            
+
             if ($i >= 1000) {
                 echo "queued 1000 movies \n";
                 $i = 0;
