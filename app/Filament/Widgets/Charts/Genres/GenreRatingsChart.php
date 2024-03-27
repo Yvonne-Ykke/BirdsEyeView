@@ -2,15 +2,12 @@
 
 namespace App\Filament\Widgets\Charts\Genres;
 
-use App\Models\Genre;
-use App\Models\Rating;
-use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Forms\Set;
+use App\Filament\Widgets\DefaultFilters\GenreFilter;
+use App\Filament\Widgets\DefaultFilters\MaximumAmountReviewsFilter;
+use App\Filament\Widgets\DefaultFilters\MinimumAmountReviewsFilter;
+use App\Filament\Widgets\DefaultFilters\SortFilter;
+use App\Filament\Widgets\DefaultFilters\TitleTypesFilter;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
@@ -57,7 +54,6 @@ class GenreRatingsChart extends ApexChartWidget
                 ],
             ],
             'xaxis' => [
-//                'categories' => $genres->pluck('name'),
                 'labels' => [
                     'style' => [
                         'fontFamily' => 'inherit',
@@ -80,70 +76,12 @@ class GenreRatingsChart extends ApexChartWidget
     protected function getFormSchema(): array
     {
         return [
-            Toggle::make('sort')
-                ->label('Sorteer hoog -> laag')
-                ->required()
-                ->live()
-                ->default(true)
-                ->afterStateUpdated(function () {
-                    $this->updateOptions();
-                }),
-            Select::make('genres')
-                ->multiple()
-                ->label('Toon enkel')
-                ->options(Genre::all()
-                    ->where('name', '!=', '\N')
-                    ->where('name', '!=', 'Adult')
-                    ->pluck('name', 'id'))
-                ->live()
-                ->maxItems(10)
-                ->hintAction(
-                    Action::make('clearField')
-                        ->label('Reset')
-                        ->icon('heroicon-m-trash')
-                        ->action(function (Set $set) {
-                            $set('genres', []);
-                        })
-                )
-                ->native(false)
-                ->searchable(),
-            TextInput::make('minimumAmountReviews')
-                ->label('Minimaal aantal reviews')
-                ->live()
-                ->default(0)
-                ->required()
-                ->numeric()
-                ->minValue(0)
-                ->hintAction(
-                    Action::make('clearField')
-                        ->label('Reset')
-                        ->icon('heroicon-m-trash')
-                        ->action(function (Set $set) {
-                            $set('minimumAmountReviews', 0);
-                        })
-                )
-                ->afterStateUpdated(function () {
-                    $this->updateOptions();
-                }),
-            TextInput::make('maxAmountReviews')
-                ->label('Maximaal aantal reviews')
-                ->live()
-                ->default(Rating::query()->max('number_votes'))
-                ->required()
-                ->minValue(0)
-                ->numeric()
-                ->hintAction(
-                    Action::make('clearField')
-                        ->label('Reset')
-                        ->icon('heroicon-m-trash')
-                        ->action(function (Set $set) {
-                            $set('maxAmountReviews', Rating::query()->max('number_votes'));
-                        })
-                )
-                ->afterStateUpdated(function () {
-                    $this->updateOptions();
-                })
-                ->helperText('Door grote hoeveelheid data kunnen deze filters traag zijn (10-15s)'),
+            SortFilter::get(),
+            GenreFilter::get(),
+            TitleTypesFilter::get(),
+            MinimumAmountReviewsFilter::get(),
+            MaximumAmountReviewsFilter::get()
+                ->helperText('Door grote hoeveelheid te verwerken data kunnen deze filters traag zijn (10-15s)'),
         ];
     }
 
@@ -175,6 +113,10 @@ class GenreRatingsChart extends ApexChartWidget
             $query->limit(10);
         }
 
+        if (!empty($this->filterFormData['titleTypes'])) {
+            $query->whereIn('titles.type', $this->filterFormData['titleTypes']);
+        }
+
         if ($this->filterFormData['sort']) {
             $query->orderByDesc('y');
         } else {
@@ -196,11 +138,16 @@ class GenreRatingsChart extends ApexChartWidget
             ? implode('-', $this->filterFormData['genres'])
             : '';
 
+        $titleTypesFilterKey = !empty($this->filterFormData['titleTypes'])
+            ? implode('-', $this->filterFormData['titleTypes'])
+            : '';
+
         return 'genreGetAverageRating-'
             . $this->filterFormData['minimumAmountReviews']
             . '-' . $this->filterFormData['maxAmountReviews']
             . '-' . ($this->filterFormData['sort'] ? 'desc' : 'asc')
-            . '-' . $titleGenresFilterKey;
+            . '-' . $titleGenresFilterKey
+            . '-' . $titleTypesFilterKey;
 
     }
 }
