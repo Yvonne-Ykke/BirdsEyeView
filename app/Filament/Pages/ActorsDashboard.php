@@ -7,14 +7,14 @@ use Closure;
 use Illuminate\Support\Facades\Route;
 
 
-class ShowsDashboard extends \Filament\Pages\Dashboard
+class ActorsDashboard extends \Filament\Pages\Dashboard
 {
-    protected static ?string $navigationIcon = 'heroicon-o-video-camera';
-    protected static string $routePath = 'shows-dashboard';
-    protected static ?int $navigationSort = 1;
-    protected static ?string $navigationLabel = 'Series';
+    protected static ?string $navigationIcon = 'heroicon-o-user-circle';
+    protected static string $routePath = 'actors-dashboard';
+    protected static ?int $navigationSort = 2;
+    protected static ?string $navigationLabel = 'Acteurs';
     protected static ?string $navigationGroup = 'Dashboards';
-    protected static ?string $title = 'Series dashboard';
+    protected static ?string $title = 'Acteurs dashboard';
 
 
     public static function getNavigationLabel(): string
@@ -32,7 +32,7 @@ class ShowsDashboard extends \Filament\Pages\Dashboard
     public function getWidgets(): array
     {
         return [
-            ShowsRatingsGenreChart::class,
+
         ];
     }
 
