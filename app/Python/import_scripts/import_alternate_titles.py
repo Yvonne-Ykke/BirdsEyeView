@@ -4,16 +4,12 @@ import db_connector as db
 import actions.stream as stream
 from enums.URLS import URLS
 from enums.PATHS import PATHS
+import os, sys
 
-
-def get_title_id(imdb_extern_id, conn):
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT id FROM titles WHERE imdb_externid = %s;", (imdb_extern_id,))
-        result = cursor.fetchone()
-        if result:
-            return result[0]
-        return None
-
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+import repositories.title_repository as title_repository
 
 def create_and_get_language_id(language_iso_6391, conn):
     """
@@ -60,8 +56,7 @@ def load_titles(conn):
 
             row = dict(zip(COLUMN_NAMES, line))
 
-            title_id = get_title_id(row['titleId'], conn)
-
+            title_id = title_repository.get_title_id(row['titleId'], conn)
             if title_id is None:
                 print(f"Title nr. {rows_processed} is not imported yet, alternate title can not be imported")
                 continue

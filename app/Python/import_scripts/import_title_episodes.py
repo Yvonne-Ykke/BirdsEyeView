@@ -4,30 +4,35 @@ import db_connector as db
 import actions.stream as stream
 from enums.URLS import URLS
 from enums.PATHS import PATHS
+import os, sys
 
-def get_parent_title_id(imdb_extern_id, conn):
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+import repositories.people_repository as people_repository
+import repositories.title_repository as title_repository
+
+def import_serie_with_episodes(conn, row, serie_id, episode_id, rows_processed):
     with conn.cursor() as cursor:
-        cursor.execute("SELECT id FROM titles WHERE imdb_externid = %s;", (imdb_extern_id,))
-        result = cursor.fetchone()
-        if result:
-            return result[0]
-        return None
-
-
-def check_episode_exists(episode_imdb_externid, conn):
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT id FROM title_episodes WHERE imdb_externid = %s;",
-                       (episode_imdb_externid,))
-        result = cursor.fetchone()
-        if result:
-            print(f"Skipping already imported episode: {episode_imdb_externid}")
-            return True
-        return False
+        cursor.execute("""
+            INSERT INTO title_episodes (parent_title_id, title_id, season_number, episode_number)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (parent_title_id, title_id) DO NOTHING
+            RETURNING id;
+        """, (
+            serie_id,
+            episode_id,
+            row['seasonNumber'] if row['seasonNumber'] != '\\N' else None,
+            row['episodeNumber'] if row['episodeNumber'] != '\\N' else None,
+        ))
+        if cursor.fetchone and row['seasonNumber'] != '\\N':
+            print(f"{rows_processed} Loaded episode {serie_id}: S{row['seasonNumber']}E{row['episodeNumber']}")
 
 
 def load_episodes(conn):
     start_time = datetime.now()
-
+    rows_added = 0
+    commit_count = 0
     genres_with_ids = {}
     # Set data source
     url = URLS.TITLE_EPISODE.value
@@ -44,41 +49,17 @@ def load_episodes(conn):
 
             row = dict(zip(COLUMN_NAMES, line))
 
-            insert_episode(conn, row)
+            # serie en episode id ophalen
+            serie_id = title_repository.get_title_id(row['parentTconst'], conn)
+            episode_id = title_repository.get_title_id(row['tconst'], conn)
 
-            with conn.cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO title_episodes (title_id, imdb_externid, season_number, episode_number)
-                    VALUES (%s, %s, %s, %s)
-                    ON CONFLICT (title_id) DO NOTHING
-                    RETURNING id;
-                """, (
-                    title_id,
-                    row['tconst'],
-                    row['seasonNumber'] if row['seasonNumber'] != '\\N' else None,
-                    row['episodeNumber'] if row['episodeNumber'] != '\\N' else None,
-                ))
+            import_serie_with_episodes(conn, row, serie_id, episode_id, rows_processed)
 
-            title_id = get_parent_title_id(row['parentTconst'], conn)
-            if title_id is None:
-                print(f"Titel niet gevonden voor rij {rows_processed}: {row['parentTconst']}, probeer eerst de titles tabel in te laden")
-                continue
-
-            if check_episode_exists(row['tconst'], conn):
-                print(f"Aflevering reeds geïmporteerd: {row['tconst']}")
-                continue
-
-
-                print(f"Nieuwe aflevering geladen: {row['tconst']}")
-                result = cursor.fetchone()
-                if result is not None:
-                    rows_added += 1
-
-                commit_count += 1
-                if commit_count == 5000:
-                    conn.commit()
-                    print("5000 afleveringen geïmporteerd")
-                    commit_count = 0
+            commit_count += 1
+            if commit_count == 1000:
+                conn.commit()
+                print("1000 afleveringen geïmporteerd")
+                commit_count = 0
     except KeyboardInterrupt:
         print("Proces onderbroken door gebruiker")
     except psycopg2.Error as e:
@@ -94,7 +75,6 @@ def load_episodes(conn):
 def execute():
     connection = db.get_connection()
     load_episodes(connection)
-
 
 if __name__ == "__main__":
     execute()

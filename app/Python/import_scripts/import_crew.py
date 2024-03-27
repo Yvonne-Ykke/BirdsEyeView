@@ -4,6 +4,14 @@ from enums.URLS import URLS
 from enums.PATHS import PATHS
 import actions.stream as stream
 import psycopg2
+import os
+import sys
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+import repositories.people_repository as people_repository
+import repositories.title_repository as title_repository
 
 # Constants
 COMMIT_THRESHOLD = 100
@@ -33,8 +41,7 @@ def load_crew(connection):
 
             # Check if the movie has directors or writers
             if row['directors'] != '\\N' or row['writers'] != '\\N':
-                # Get internal movie ID for tconst
-                movie_id = get_movie_id(connection, row['tconst'])
+                movie_id = title_repository.get_title_id(row['tconst'], connection)
 
                 # Add directors to database
                 if row['directors'] != '\\N':
@@ -70,7 +77,7 @@ def load_crew(connection):
 def add_crew_to_database(connection, crew_list, movie_id, commit_count, role, rows_added):
 
     for crew_member in crew_list:
-        people_id = get_people_id(connection, crew_member)
+        people_id = people_repository.get_person_id(connection, crew_member)
         if people_id is not None and movie_id is not None:
             add_crew_to_movie(connection, movie_id, people_id)
             print(f"{commit_count} added {role}: {people_id} to movie {movie_id}")
@@ -99,48 +106,6 @@ def add_crew_to_movie(connection, movie_id, people_id):
             VALUES (%s, %s, %s)
             ON CONFLICT (model_id, people_id) DO NOTHING;
             """, (model_type, movie_id, people_id))
-
-def get_movie_id(connection, tconst):
-    """
-    Get movie ID from the database based on tconst.
-
-    Args:
-    connection (psycopg2.extensions.connection): A connection to the database.
-    tconst (str): Movie tconst.
-
-    Returns:
-    int: Internal movie ID.
-    """
-    with connection.cursor() as cursor:
-        # Query to get movie id based on the tconst
-        cursor.execute("SELECT id FROM titles WHERE imdb_externid = %s", (tconst,))
-        result = cursor.fetchone()
-
-        if result:
-            db_title_id = result[0]
-            return db_title_id
-
-def get_people_id(connection, person_id):
-    """
-    Get people ID from the database based on person ID.
-
-    Args:
-    connection (psycopg2.extensions.connection): A connection to the database.
-    person_id (str): Person ID.
-
-    Returns:
-    int: Internal people ID.
-    """
-    with connection.cursor() as cursor:
-        # Query to get people id based on the nmconst
-        cursor.execute("SELECT id FROM people WHERE imdb_externid = %s", (person_id,))
-        result = cursor.fetchone()
-
-        if result:
-            people_id = result[0]
-            return people_id
-        else:
-            print("Person is not inserted in people table")
 
 
 def execute():

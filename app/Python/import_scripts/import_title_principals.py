@@ -1,41 +1,22 @@
 from datetime import datetime
-import psycopg2
 import db_connector as db
-import actions.stream as stream
 from enums.URLS import URLS
 from enums.PATHS import PATHS
+import actions.stream as stream
+import psycopg2
+import os
+import sys
 
+import import_scripts.import_name_basics as name_basics
 
-def get_person_id(imdb_extern_id, conn):
-    """
-    Get the internal ID of a person based on their IMDb external ID.
-
-    Args:
-    imdb_extern_id (str): IMDb external ID of the person.
-    conn (psycopg2.extensions.connection): A connection to the database.
-
-    Returns:
-    int or None: Internal ID of the person if found, otherwise None.
-    """
-    with conn.cursor() as cursor:
-        cursor.execute("SELECT id FROM people WHERE imdb_externid = %s;", (imdb_extern_id,))
-        result = cursor.fetchone()
-        if result:
-            return result[0]
-        return None
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+import repositories.people_repository as people_repository
+import repositories.title_repository as title_repository
 
 
 def title_exists(title, conn):
-    """
-    Check if a title exists in the database.
-
-    Args:
-    title (str): IMDb external ID of the title.
-    conn (psycopg2.extensions.connection): A connection to the database.
-
-    Returns:
-    int or None: Internal ID of the title if found, otherwise None.
-    """
     with conn.cursor() as cursor:
         cursor.execute("SELECT id FROM titles WHERE imdb_externid = %s;", (title,))
         result = cursor.fetchone()
@@ -43,8 +24,34 @@ def title_exists(title, conn):
             return result[0]
     return None
 
+def handle_professions(row, professions, conn):
+    profession_id = None
+    profession = row['category']
+    if profession not in professions:
+        profession_id = name_basics.create_and_get_profession_id(profession, conn)
+        professions[profession] = profession_id
+    else:
+        profession_id = professions[profession]
+    return professions, profession_id
+
+def import_crew_professions(connection, crew_id, profession_id):
+    with connection.cursor() as cursor:
+          cursor.execute("""
+            INSERT INTO crew_professions (crew_id, profession_id)
+            VALUES (%s, %s)
+            ON CONFLICT (crew_id, profession_id) DO NOTHING
+            RETURNING id;
+            """, (
+            crew_id,
+            profession_id,
+            ))
+
+          if cursor.fetchone():
+            print(f"Imported crew member {crew_id} in crew_professions")
 
 def load_principals(conn):
+
+    professions = {}
     start_time = datetime.now()
 
     # Set data source
@@ -67,38 +74,19 @@ def load_principals(conn):
 
             row = dict(zip(COLUMN_NAMES, line))
 
-            if title_exists(row['parentTconst'], conn):
-                print(f"{rows_processed} parent title does not exists")
-                continue
+            title_imdb_id = row['tconst']
+            person_id = people_repository.get_person_id(conn, row['nconst'])
+            crew_id = name_basics.insert_crew(conn, row, person_id, title_imdb_id, False)
 
-            title_id = title_exists(row['tconst'], conn)
+            professions, profession_id = handle_professions(row, professions, conn)
+            import_crew_professions(conn, crew_id, profession_id)
 
-            if title_id is None:
-                print(f"{rows_processed} parent title does not exists in titles yet")
-                continue
-
-            with conn.cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO title_episodes (title_id, imdb_externid, season_number, episode_number)
-                    VALUES (%s, %s, %s, %s)
-                    RETURNING id;
-                """, (
-                    title_id,
-                    row['tconst'],
-                    row['seasonNumber'] if row['seasonNumber'] != '\\N' else None,
-                    row['episodeNumber'] if row['episodeNumber'] != '\\N' else None,
-                ))
-
-                print(f"Loaded episode {row['tconst']} - Title ID: {title_id}")
-                result = cursor.fetchone()
-                if result is not None:
-                    rows_added += 1
-
-                commit_count += 1
-                if commit_count == 5000:
-                    conn.commit()
-                    print("5000 episodes imported")
-                    commit_count = 0
+            rows_added += 1
+            commit_count += 1
+            if commit_count == 5000:
+                conn.commit()
+                print("5000 episodes imported")
+                commit_count = 0
 
     except psycopg2.Error as e:
         conn.rollback()
@@ -118,7 +106,7 @@ def execute():
     Execute the script.
     """
     connection = db.get_connection()
-    load_episodes(connection)
+    load_principals(connection)
 
 
 if __name__ == "__main__":
