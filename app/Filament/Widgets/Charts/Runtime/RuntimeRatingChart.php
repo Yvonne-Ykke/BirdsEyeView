@@ -31,7 +31,7 @@ class RuntimeRatingChart extends ApexChartWidget
      */
     protected static ?string $heading = 'Rating van films met verschillende runtimes';
 
-    protected int | string | array $columnSpan = 2;
+    protected int|string|array $columnSpan = 2;
 
     protected static ?string $pollingInterval = null;
 
@@ -81,7 +81,6 @@ class RuntimeRatingChart extends ApexChartWidget
     {
         return [
             Select::make('genres')
-            ->multiple()
                 ->label('Toon enkel')
                 ->options(Genre::all()
                     ->where('name', '!=', '\N')
@@ -90,7 +89,6 @@ class RuntimeRatingChart extends ApexChartWidget
                     ->where('name', '!=', 'Short')
                     ->pluck('name', 'id'))
                 ->live()
-                ->maxItems(1)
                 ->hintAction(
                     Action::make('clearField')
                         ->label('Reset')
@@ -124,7 +122,7 @@ class RuntimeRatingChart extends ApexChartWidget
 
             ];
         }
-       #dd($options);
+        #dd($options);
         return $options;
     }
 
