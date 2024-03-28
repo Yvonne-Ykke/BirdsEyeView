@@ -38,7 +38,7 @@ class GenreDashboard extends \Filament\Pages\Dashboard
         return [
             GenreRatingsChart::class,
             GenreRevenueTimelineChart::class,
-//            AmountOfTitlesPerGenreChart::class,
+            AmountOfTitlesPerGenreChart::class,
         ];
     }
 

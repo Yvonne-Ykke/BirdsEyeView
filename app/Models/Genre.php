@@ -120,7 +120,7 @@ class Genre extends Model
 
         $results = $query
            ->get()
-           ->toArray(); 
+           ->toArray();
 
         return $results;
     }

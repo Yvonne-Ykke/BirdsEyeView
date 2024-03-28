@@ -53,7 +53,10 @@ def load_episodes(conn):
             serie_id = title_repository.get_title_id(row['parentTconst'], conn)
             episode_id = title_repository.get_title_id(row['tconst'], conn)
 
-            import_serie_with_episodes(conn, row, serie_id, episode_id, rows_processed)
+            if serie_id and episode_id:
+                import_serie_with_episodes(conn, row, serie_id, episode_id, rows_processed)
+            else:
+                print("Serie bestaat niet en is overgeslagen.")
 
             commit_count += 1
             if commit_count == 1000:
