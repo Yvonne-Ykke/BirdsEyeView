@@ -142,4 +142,5 @@ class RuntimeRatingChart extends ApexChartWidget
             ->get();
     }
 
+
 }

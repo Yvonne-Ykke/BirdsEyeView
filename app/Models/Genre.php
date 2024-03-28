@@ -91,12 +91,23 @@ class Genre extends Model
             $query->whereIn('type', $titleTypes);
         }
 
-        $result = $query
+        $titleTypesFilterKey = !empty($titleTypes)
+        ? implode('-', $titleTypes)
+        : '';
+
+        $cacheKey = 'getAverageRuntime-'
+            . '-' . $titleTypesFilterKey
+            . '-' . $this->id;
+
+        $result = Cache::rememberForever($cacheKey, function () use ($query) {
+            return $query
             ->get()
             ->toArray()[0];
-
+            });
+            
+   # dd($result);
         return [
-            'averageRuntime' => $result->genre_average_runtime,
+            'averageRuntime' => $result[0]->genre_average_runtime
         ];
     }
 
@@ -118,10 +129,19 @@ class Genre extends Model
             $query->whereIn('type', $titleTypes);
         }
 
-        $results = $query
-           ->get()
-           ->toArray();
 
-        return $results;
+        $titleTypesFilterKey = !empty($titleTypes)
+        ? implode('-', $titleTypes)
+        : '';
+
+        $cacheKey = 'getRuntimeRating-'
+            . '-' . $titleTypesFilterKey
+            . '-' . $this->id;
+
+        return Cache::rememberForever($cacheKey, function () use ($query) {
+            return $query
+            ->get()
+            ->toArray();
+            });
     }
 }
