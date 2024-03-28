@@ -14,13 +14,13 @@ def main():
     # Als Titles klaar is de volgende draaien eventueel in meerdere terminals
     # alternate_titles.execute()
     # ratings.execute()
-     episodes.execute()
+    # episodes.execute()
 
     # Names moet je draaien voordat je crew of principals draait
     # names.execute()
 
     # Als laaste draaien:
-    # principals.execute()
+    principals.execute()
     # crew.execute()
 
 

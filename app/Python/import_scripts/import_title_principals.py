@@ -79,7 +79,9 @@ def load_principals(conn):
             crew_id = name_basics.insert_crew(conn, row, person_id, title_imdb_id, False)
 
             professions, profession_id = handle_professions(row, professions, conn)
-            import_crew_professions(conn, crew_id, profession_id)
+
+            if crew_id and profession_id:
+                import_crew_professions(conn, crew_id, profession_id)
 
             rows_added += 1
             commit_count += 1
