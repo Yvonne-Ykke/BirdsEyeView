@@ -12,16 +12,16 @@ class MinimumAmountReviewsFilter
     {
         return TextInput::make('minimumAmountReviews')
             ->label('Minimaal aantal reviews')
-            ->default(0)
+            ->default(1)
             ->required()
             ->numeric()
-            ->minValue(0)
+            ->minValue(1)
             ->hintAction(
                 Action::make('clearField')
                     ->label('Reset')
                     ->icon('heroicon-m-trash')
                     ->action(function (Set $set) {
-                        $set('minimumAmountReviews', 0);
+                        $set('minimumAmountReviews', 1);
                     })
             );
     }
