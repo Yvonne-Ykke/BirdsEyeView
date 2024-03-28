@@ -4,6 +4,8 @@ namespace App\Console\Commands\Database;
 
 use Illuminate\Console\Command;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Queue\Jobs\Job;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class SetDatabaseIndexes extends Command
@@ -27,30 +29,42 @@ class SetDatabaseIndexes extends Command
      */
     public function handle(): void
     {
+        if ($this->checkDatabaseImporting()) {
+            $this->error('Database still importing, skipping...');
+            return;
+        }
+
         $this->setTitlesIndexes();
         $this->setRatingsIndexes();
+    }
+
+    private function checkDatabaseImporting(): bool
+    {
+        return DB::query()
+                ->from('jobs')
+                ->count() > 0;
     }
 
     private function setTitlesIndexes(): void
     {
         Schema::table('titles', function (Blueprint $table) {
-            if(!Schema::hasIndex('titles', ['budget'])) {
+            if (!Schema::hasIndex('titles', ['budget'])) {
                 $table->index('budget');
                 $this->info("Set titles budget index");
             } else {
                 $this->warn("Titles budget index already exists, Skipping...");
             }
 
-            if(!Schema::hasIndex('titles', ['revenue'])) {
+            if (!Schema::hasIndex('titles', ['revenue'])) {
                 $table->index('revenue');
-                $this->info( "Set titles revenue index");
+                $this->info("Set titles revenue index");
             } else {
                 $this->warn("Titles revenue index already exists, Skipping...");
             }
 
-            if(!Schema::hasIndex('titles', ['type'])) {
+            if (!Schema::hasIndex('titles', ['type'])) {
                 $table->index('type');
-                $this->info( "Set titles type index");
+                $this->info("Set titles type index");
             } else {
                 $this->warn("Titles type index already exists, Skipping...");
             }
@@ -60,19 +74,21 @@ class SetDatabaseIndexes extends Command
     private function setRatingsIndexes(): void
     {
         Schema::table('model_has_ratings', function (Blueprint $table) {
-            if(!Schema::hasIndex('model_has_ratings', ['average_rating'])) {
+            if (!Schema::hasIndex('model_has_ratings', ['average_rating'])) {
                 $table->index('average_rating');
-                $this->info( "Set average_rating index");
+                $this->info("Set average_rating index");
             } else {
                 $this->warn("Ratings average_rating index already exists, Skipping...");
             }
 
-            if(!Schema::hasIndex('model_has_ratings', ['number_votes'])) {
+            if (!Schema::hasIndex('model_has_ratings', ['number_votes'])) {
                 $table->index('number_votes');
-                $this->info( "Set average number_votes index");
+                $this->info("Set average number_votes index");
             } else {
                 $this->warn("Ratings number_votes index already exists, Skipping...");
             }
         });
     }
+
+
 }

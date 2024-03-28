@@ -33,7 +33,6 @@ class ShowsDashboard extends \Filament\Pages\Dashboard
     public function getWidgets(): array
     {
         return [
-//            GenreRatingsChart::class
             ShowsRatingsGenreChart::class,
         ];
     }
