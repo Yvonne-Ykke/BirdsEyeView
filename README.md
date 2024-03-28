@@ -104,4 +104,4 @@ Alleen geïnteresseerd in films of production companies?
 
 ### Toch niet? Even indexes weghalen voor snellere import.
 
-> app:drop-database-indexes
+> php artisan app:drop-database-indexes
