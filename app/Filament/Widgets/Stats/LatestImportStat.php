@@ -19,7 +19,7 @@ class LatestImportStat extends BaseWidget
                     ->where('description', 'Import Tmdb-data')
                     ->latest()
                     ->first()
-                    ->toArray();
+                    ?->toArray();
 
                 if ($activity) {
                     return Carbon::make($activity['created_at'])->format('d-m-Y');
