@@ -31,8 +31,8 @@ class PeopleResource extends Resource
         return $form
             ->schema([
                 Actions::make([
-                    LinkImdbAction::action(),
-                    LinkTmdbAction::action(),
+                    LinkImdbAction::action('name/'),
+                    LinkTmdbAction::action('person/'),
                 ])->columnSpanFull(),
                 Forms\Components\Section::make('Gegevens')
                     ->schema([
