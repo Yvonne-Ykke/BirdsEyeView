@@ -60,9 +60,19 @@ class Title extends Model
         return $this->morphOne(Rating::class, 'rateable', 'model_type', 'model_id');
     }
 
-
     public function crew(): MorphToMany
     {
         return $this->morphToMany(People::class, 'model', 'model_has_crew');
+    }
+
+    public function productionCompanies(): MorphToMany
+    {
+        return $this->morphToMany(
+            related: ProductionCompany::class,
+            name: 'model',
+            table: 'model_has_production_company',
+            foreignPivotKey: 'model_id',
+            relatedPivotKey: 'production_company_id'
+        );
     }
 }

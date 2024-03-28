@@ -4,6 +4,7 @@ namespace App\Api\Actions\Tmdb;
 
 use App\Api\Tmdb\TmdbApi;
 use App\Models\Genre;
+use App\Models\ProductionCompany;
 use App\Models\Rating;
 use App\Models\Title;
 use Carbon\Carbon;
@@ -27,6 +28,7 @@ class ImportTitleDetail
         $this->title = $this->saveTitle();
         $this->saveGenres();
         $this->saveRating();
+        $this->saveProductionCompanies();
     }
 
     private function saveTitle()
@@ -75,5 +77,21 @@ class ImportTitleDetail
                 'number_votes' => $this->result['vote_count']
             ]
         );
+    }
+
+    private function saveProductionCompanies(): void
+    {
+        foreach ($this->result['production_companies'] as $productionCompany) {
+            $productionCompany = ProductionCompany::updateOrCreate(
+                ['tmdb_externid' => $productionCompany['id']],
+                [
+                    'name' => $productionCompany['name'],
+                    'tmdb_externid' => $productionCompany['id'],
+                    'origin_country' => $productionCompany['origin_country'],
+                ],
+            );
+
+            $this->title->productionCompanies()->attach($productionCompany->id);
+        }
     }
 }
