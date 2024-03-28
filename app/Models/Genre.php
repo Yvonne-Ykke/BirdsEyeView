@@ -79,7 +79,7 @@ class Genre extends Model
         ];
     }
 
-    public function getAverageRuntime(array $titleTypes = []): array
+    public function getAverageRuntime(array $titleTypes = [])
     {
         $query = DB::query()
             ->selectRaw("cast(sum(runtime_minutes) / count(runtime_minutes) as decimal(16, 2)) as genre_average_runtime")
@@ -92,8 +92,8 @@ class Genre extends Model
         }
 
         $titleTypesFilterKey = !empty($titleTypes)
-        ? implode('-', $titleTypes)
-        : '';
+            ? implode('-', $titleTypes)
+            : '';
 
         $cacheKey = 'getAverageRuntime-'
             . '-' . $titleTypesFilterKey
@@ -101,14 +101,11 @@ class Genre extends Model
 
         $result = Cache::rememberForever($cacheKey, function () use ($query) {
             return $query
-            ->get()
-            ->toArray()[0];
-            });
-            
-   # dd($result);
-        return [
-            'averageRuntime' => $result[0]->genre_average_runtime
-        ];
+                ->get()
+                ->toArray();
+        });
+
+        return $result[0]->genre_average_runtime;
     }
 
     public function getRuntimeRating(array $titleTypes = []): array
@@ -131,8 +128,8 @@ class Genre extends Model
 
 
         $titleTypesFilterKey = !empty($titleTypes)
-        ? implode('-', $titleTypes)
-        : '';
+            ? implode('-', $titleTypes)
+            : '';
 
         $cacheKey = 'getRuntimeRating-'
             . '-' . $titleTypesFilterKey
@@ -140,8 +137,8 @@ class Genre extends Model
 
         return Cache::rememberForever($cacheKey, function () use ($query) {
             return $query
-            ->get()
-            ->toArray();
-            });
+                ->get()
+                ->toArray();
+        });
     }
 }

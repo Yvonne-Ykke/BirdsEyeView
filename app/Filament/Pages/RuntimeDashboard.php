@@ -34,7 +34,7 @@ class RuntimeDashboard extends \Filament\Pages\Dashboard
     {
         return [
             RuntimeChart::class,
-            RuntimeRatingChart::class,
+//            RuntimeRatingChart::class,
         ];
     }
 

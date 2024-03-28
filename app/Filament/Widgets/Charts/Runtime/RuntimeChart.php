@@ -19,7 +19,7 @@ class RuntimeChart extends ApexChartWidget
      */
     protected static string $chartId = 'runtimeChart';
 
-    protected int | string | array $columnSpan = 2;
+    protected int|string|array $columnSpan = 2;
 
     /**
      * Widget Title
@@ -39,7 +39,6 @@ class RuntimeChart extends ApexChartWidget
     protected function getOptions(): array
     {
         $genres = $this->getGenres();
-
         if (!$this->readyToLoad) {
             return [];
         }
@@ -112,27 +111,24 @@ class RuntimeChart extends ApexChartWidget
             $genres = Genre::query()
                 ->whereIn('id', $this->filterFormData['genres']);
         } else
-            $genres = Genre::query()
-                ;
+            $genres = Genre::query()->limit(10);
 
         return $genres
             ->orderBy('name')
             ->where('name', '!=', '\N')
             ->where('name', '!=', 'Adult')
             ->where('name', '!=', 'Short')
-            ->has('titles')
             ->get();
     }
 
-    private function getChartData(Collection $runtime, ): array
+    private function getChartData(Collection $genres): array
     {
         $genreWithAverageRuntime = [];
-        foreach ($runtime as $runtime) {
-            if ($runtime != null) {
-            $genreWithAverageRuntime[] = $runtime->getAverageRuntime(
-            ['movie']
-            )['averageRuntime'];
-        }}
+        foreach ($genres as $genre) {
+            if ($genre != null) {
+                $genreWithAverageRuntime[] = $genre->getAverageRuntime(['movie']);
+            }
+        }
         return $genreWithAverageRuntime;
     }
 }
