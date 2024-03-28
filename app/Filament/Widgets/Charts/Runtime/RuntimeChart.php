@@ -2,12 +2,11 @@
 
 namespace App\Filament\Widgets\Charts\Runtime;
 
-use App\Models\Genre;
-use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Set;
-use Illuminate\Support\Collection;
+use App\Filament\Widgets\DefaultFilters\GenreFilter;
+use App\Filament\Widgets\DefaultFilters\TitleTypesFilter;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class RuntimeChart extends ApexChartWidget
@@ -38,7 +37,6 @@ class RuntimeChart extends ApexChartWidget
      */
     protected function getOptions(): array
     {
-        $genres = $this->getGenres();
         if (!$this->readyToLoad) {
             return [];
         }
@@ -51,11 +49,10 @@ class RuntimeChart extends ApexChartWidget
             'series' => [
                 [
                     'name' => 'Gemiddelde tijdsduur',
-                    'data' => $this->getChartData($genres),
+                    'data' => $this->getChartData(),
                 ],
             ],
             'xaxis' => [
-                'categories' => $genres->pluck('name'),
                 'labels' => [
                     'style' => [
                         'fontFamily' => 'inherit',
@@ -78,57 +75,66 @@ class RuntimeChart extends ApexChartWidget
     protected function getFormSchema(): array
     {
         return [
-            Select::make('genres')
-                ->multiple()
-                ->label('Toon enkel')
-                ->options(Genre::all()
-                    ->where('name', '!=', '\N')
-                    ->where('name', '!=', '')
-                    ->where('name', '!=', 'Adult')
-                    ->where('name', '!=', 'Short')
-                    ->pluck('name', 'id'))
+            GenreFilter::get()
                 ->live()
-                ->maxItems(10)
-                ->hintAction(
-                    Action::make('clearField')
-                        ->label('Reset')
-                        ->icon('heroicon-m-trash')
-                        ->action(function (Set $set) {
-                            $set('genres', []);
-                        })
-                )
-                ->native(false)
-                ->searchable()
                 ->afterStateUpdated(function () {
                     $this->updateOptions();
                 }),
+            TitleTypesFilter::get()
+                ->default(['movie']),
         ];
     }
 
-    private function getGenres(): \Illuminate\Database\Eloquent\Collection|array
+    private function getChartData(): array
     {
-        if (!empty($this->filterFormData['genres'])) {
-            $genres = Genre::query()
-                ->whereIn('id', $this->filterFormData['genres']);
-        } else
-            $genres = Genre::query()->limit(10);
+        $query = $this->buildQuery();
+        $cacheKey = $this->getCacheKey();
 
-        return $genres
-            ->orderBy('name')
-            ->where('name', '!=', '\N')
-            ->where('name', '!=', 'Adult')
-            ->where('name', '!=', 'Short')
-            ->get();
+        return Cache::rememberForever($cacheKey, function () use ($query) {
+            return $query
+                ->get()
+                ->toArray();
+        });
     }
 
-    private function getChartData(Collection $genres): array
+    private function getCacheKey(): string
     {
-        $genreWithAverageRuntime = [];
-        foreach ($genres as $genre) {
-            if ($genre != null) {
-                $genreWithAverageRuntime[] = $genre->getAverageRuntime(['movie']);
-            }
+        $titleTypesFilterKey = !empty($this->filterFormData['titleTypes'])
+            ? implode('-', $this->filterFormData['titleTypes'])
+            : '';
+
+        $titleGenresFilterKey = !empty($this->filterFormData['genres'])
+            ? implode('-', $this->filterFormData['genres'])
+            : '';
+
+        return 'getAverageRuntimeChart-'
+            . '-' . $titleTypesFilterKey
+            . '-' . $titleGenresFilterKey;
+    }
+
+    private function buildQuery(): Builder
+    {
+        $query = DB::query()
+            ->selectRaw("cast(sum(runtime_minutes) / count(runtime_minutes) as decimal(16, 2)) as y, genres.name as x")
+            ->from('titles')
+            ->join('title_genres', 'titles.id', '=', 'title_genres.title_id')
+            ->join('genres', 'title_genres.genre_id', '=', 'genres.id')
+            ->where('name', '!=', '\N')
+            ->where('name', '!=', 'Adult')
+            ->where('name', '!=', 'undefined')
+            ->orderBy('name')
+            ->groupBy('genres.name');
+
+        if (!empty($this->filterFormData['genres'])) {
+            $query->whereIn('id', $this->filterFormData['genres']);
+        } else {
+            $query->limit(10);
         }
-        return $genreWithAverageRuntime;
+
+        if (!empty($this->filterFormData['titleTypes'])) {
+            $query->whereIn('type', $this->filterFormData['titleTypes']);
+        }
+
+        return $query;
     }
 }
