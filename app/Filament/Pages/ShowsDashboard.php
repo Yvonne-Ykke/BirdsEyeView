@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\Charts\Genres\GenreRatingsChart;
 use App\Filament\Widgets\Charts\Shows\ShowsRatingsGenreChart;
 use Closure;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,7 @@ class ShowsDashboard extends \Filament\Pages\Dashboard
     public function getWidgets(): array
     {
         return [
+//            GenreRatingsChart::class
             ShowsRatingsGenreChart::class,
         ];
     }

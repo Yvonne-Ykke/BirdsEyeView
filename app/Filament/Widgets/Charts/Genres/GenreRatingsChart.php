@@ -93,7 +93,6 @@ class GenreRatingsChart extends ApexChartWidget
 
     private function getChartData(): array
     {
-
         $query = DB::query()
             ->selectRaw("cast(sum(average_rating * number_votes) / sum(number_votes) as decimal(16, 2)) as y, genres.name as x")
             ->from('titles')
