@@ -51,7 +51,7 @@ class RuntimeChart extends ApexChartWidget
             ],
             'series' => [
                 [
-                    'name' => 'Gemiddelde runtime',
+                    'name' => 'Gemiddelde tijdsduur',
                     'data' => $this->getChartData($genres),
                 ],
             ],

@@ -29,7 +29,7 @@ class RuntimeRatingChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Rating van films met verschillende runtimes';
+    protected static ?string $heading = 'Beoordeling van films met verschillende tijdsduren';
 
     protected int|string|array $columnSpan = 2;
 

@@ -13,9 +13,9 @@ class RuntimeDashboard extends \Filament\Pages\Dashboard
     protected static string $routePath = 'runtime-dashboard';
     protected static ?int $navigationSort = 3;
     protected static ?string $navigationGroup = 'Dashboards';
-    protected static ?string $navigationLabel = 'Runtime';
+    protected static ?string $navigationLabel = 'Tijdsduur';
 
-    protected static ?string $title = 'Runtime dashboard';
+    protected static ?string $title = 'Tijdsduur dashboard';
 
 
     public static function getNavigationLabel(): string
