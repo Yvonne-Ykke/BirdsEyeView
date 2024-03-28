@@ -4,6 +4,8 @@ namespace App\Support\Enums;
 
 enum Colors: string
 {
+    use BaseEnumTrait;
+
     case RED = '#dc2626';
     case NEUTRAL = '#525252';
     case ORANGE = '#ea580c';
@@ -26,21 +28,5 @@ enum Colors: string
 
         return $colors;
     }
-
-    public static function array(): array
-    {
-        return array_combine(self::values(), self::names());
-    }
-
-    public static function names(): array
-    {
-        return array_column(self::cases(), 'name');
-    }
-
-    public static function values(): array
-    {
-        return array_column(self::cases(), 'value');
-    }
-
 }
 

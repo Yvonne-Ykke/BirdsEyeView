@@ -2,6 +2,8 @@
 
 namespace App\Filament\Widgets\Charts\Genres;
 
+use App\Filament\Widgets\DefaultFilters\GenreFilter;
+use App\Filament\Widgets\DefaultFilters\TitleTypesFilter;
 use App\Models\Genre;
 use Doctrine\DBAL\Query;
 use Filament\Forms\Components\Actions\Action;
@@ -76,24 +78,12 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget
     protected function getFormSchema(): array
     {
         return [
-            Select::make('genres')
-                ->multiple()
-                ->label('Toon enkel')
-                ->options(Genre::all()
-                    ->where('name', '!=', '\N')
-                    ->where('name', '!=', 'Adult')
-                    ->pluck('name', 'id'))
-                ->live()
-                ->hintAction(
-                    Action::make('clearField')
-                        ->label('Reset invoerveld')
-                        ->icon('heroicon-m-trash')
-                        ->action(function (Set $set) {
-                            $set('genres', []);
-                        })
-                )
-                ->native(false)
-                ->searchable()
+            GenreFilter::get()
+                ->maxItems(15)
+                ->afterStateUpdated(function () {
+                    $this->updateOptions();
+                }),
+            TitleTypesFilter::get()
                 ->afterStateUpdated(function () {
                     $this->updateOptions();
                 }),
@@ -112,22 +102,32 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget
             ->join('title_genres', 'genres.id', 'title_genres.genre_id')
             ->where('name', '!=', '\N')
             ->where('name', '!=', 'Adult')
+            ->where('name', '!=', 'undefined')
             ->orderByDesc('y')
             ->groupBy(['genre_id', 'name']);
 
 
         $titleGenreFilterKey = '';
-        if (!empty($this->filterFormData['genres'])) {
-            $query->whereIn('id', $this->filterFormData['genres']);
+        $titleTypesFilterKey = '';
 
-            $titleGenreFilterKey = !empty($this->filterFormData['genres'])
-                ? implode('-', $this->filterFormData['genres'])
-                : '';
+        if (!empty($this->filterFormData['genres'])) {
+            $query->whereIn('genres.id', $this->filterFormData['genres']);
+            $titleGenreFilterKey = implode('-', $this->filterFormData['genres']);
         }
 
-        $cacheKey = 'AmountOfTitlesPerGenreChart-' . $titleGenreFilterKey;
+        if (!empty($this->filterFormData['titleTypes'])) {
+            $query->join('titles', 'title_genres.title_id', 'titles.id')
+                ->whereIn('titles.type', $this->filterFormData['titleTypes']);
+            $titleTypesFilterKey = implode('-', $this->filterFormData['titleTypes']);
+        }
+
+        $cacheKey = 'AmountOfTitlesPerGenreChart'
+            . '-' . $titleGenreFilterKey
+            . '-' . $titleTypesFilterKey;
+
         return Cache::rememberForever($cacheKey, function () use ($query) {
-            return $query->get()
+            return $query
+                ->get()
                 ->toArray();
         });
     }
