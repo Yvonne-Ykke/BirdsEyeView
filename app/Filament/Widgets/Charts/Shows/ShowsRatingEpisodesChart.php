@@ -6,6 +6,7 @@ use App\Filament\Widgets\DefaultFilters\MaximumAmountReviewsFilter;
 use App\Filament\Widgets\DefaultFilters\MinimumAmountReviewsFilter;
 use App\Models\Title;
 use App\Support\Enums\Colors;
+use Filament\Support\RawJs;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -28,6 +29,8 @@ class ShowsRatingEpisodesChart extends ApexChartWidget
     protected static ?string $heading = 'Aantal aflevering per gemiddelde recensie';
 
     protected static ?string $pollingInterval = null;
+
+    protected static ?string $subheading = 'Elk bolletje is een serie';
 
     /**
      * Chart options (series, labels, types, size, animations...)
@@ -68,6 +71,21 @@ class ShowsRatingEpisodesChart extends ApexChartWidget
             ],
             'colors' => Colors::getStatic(count($data)),
         ];
+    }
+
+    protected function extraJsOptions(): ?RawJs
+    {
+        return RawJs::make(<<<'JS'
+        {
+            tooltip: {
+                y: {
+                    formatter: function (val) {
+                        return val + ' afleveringen'
+                    }
+                }
+           },
+        }
+        JS);
     }
 
     protected function getFormSchema(): array
