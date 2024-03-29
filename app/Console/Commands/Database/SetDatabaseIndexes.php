@@ -5,6 +5,7 @@ namespace App\Console\Commands\Database;
 use Illuminate\Console\Command;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Queue\Jobs\Job;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
@@ -36,6 +37,7 @@ class SetDatabaseIndexes extends Command
 
         $this->setTitlesIndexes();
         $this->setRatingsIndexes();
+        Artisan::call('cache:clear');
     }
 
     private function checkDatabaseImporting(): bool
