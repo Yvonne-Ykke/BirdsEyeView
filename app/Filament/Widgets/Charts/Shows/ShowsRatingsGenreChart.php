@@ -17,7 +17,7 @@ class ShowsRatingsGenreChart extends GenreRatingsChart
      */
     protected static string $chartId = 'genreRatingsChart';
 
-    protected int|string|array $columnSpan = 2;
+    protected int|string|array $columnSpan = 1;
 
 
     public function __construct()
