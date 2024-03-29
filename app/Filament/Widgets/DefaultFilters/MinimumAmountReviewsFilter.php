@@ -14,6 +14,7 @@ class MinimumAmountReviewsFilter
             ->label('Minimaal aantal reviews')
             ->default(1)
             ->required()
+            ->lt('maxAmountReviews')
             ->numeric()
             ->minValue(1)
             ->hintAction(

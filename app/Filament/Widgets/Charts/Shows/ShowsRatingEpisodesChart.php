@@ -2,7 +2,10 @@
 
 namespace App\Filament\Widgets\Charts\Shows;
 
+use App\Filament\Widgets\DefaultFilters\MaximumAmountReviewsFilter;
+use App\Filament\Widgets\DefaultFilters\MinimumAmountReviewsFilter;
 use App\Models\Title;
+use App\Support\Enums\Colors;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -34,22 +37,16 @@ class ShowsRatingEpisodesChart extends ApexChartWidget
      */
     protected function getOptions(): array
     {
-        $this->getChartData();
+        $data = $this->getChartData();
         return [
             'chart' => [
                 'type' => 'scatter',
                 'height' => 300,
             ],
-            'series' => $this->getChartData(),
-//            'series' => [
-//                [
-//                    'name' => 'Jan',
-//                    'data' => $this->getChartData(),
-//                ],
-//            ],
+            'series' => $data,
             'xaxis' => [
                 'tickAmount' => 7,
-                'categories' => [1,2,3,4,5,6,7,8,9,10],
+                'categories' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
                 'labels' => [
                     'style' => [
                         'fontFamily' => 'inherit',
@@ -69,28 +66,38 @@ class ShowsRatingEpisodesChart extends ApexChartWidget
                     'fontFamily' => 'inherit',
                 ],
             ],
+            'colors' => Colors::getStatic(count($data)),
         ];
+    }
+
+    protected function getFormSchema(): array
+    {
+        return [
+            MinimumAmountReviewsFilter::get()
+                ->default(10000),
+            MaximumAmountReviewsFilter::get(),
+        ];
+
     }
 
     public function getChartData(): array
     {
         $query = $this->buildQuery();
-        $result = $this->resetResultArrayKeys(function () use ($query) {
+
+        return $this->resetResultArrayKeys(function () use ($query) {
             return Cache::rememberForever(
                 key: $this->getCacheKey(),
                 callback: function () use ($query) {
                     return $query->get()->toArray();
                 });
         });
-//        dd($result);
-        return $result;
     }
 
 
     /**/
     public function buildQuery(): Builder
     {
-        $query = Title::query()
+        return Title::query()
             ->select('rounded_rating', 'episodes')
             ->fromSub(function ($query) {
                 $query->select('episodes', 'rounded_rating', DB::raw('ROW_NUMBER() OVER(PARTITION BY episodes, rounded_rating ORDER BY episodes DESC) AS row_num'))
@@ -101,13 +108,13 @@ class ShowsRatingEpisodesChart extends ApexChartWidget
                             ->join('title_episodes AS te', 'titles.id', '=', 'te.parent_title_id')
                             ->join('model_has_ratings', 'titles.id', '=', 'model_has_ratings.model_id')
                             ->where('type', 'tvSeries')
-                            ->where('number_votes', '>', 10000)
+                            ->where('number_votes', '>', $this->filterFormData['minimumAmountReviews'])
+                            ->where('number_votes', '<', $this->filterFormData['maxAmountReviews'])
                             ->groupBy('primary_title', 'rounded_rating');
                     }, 'subquery');
             }, 'subquery2')
-            ->where('row_num', 1);
-
-        return $query;
+            ->where('row_num', 1)
+            ->limit(1000);
     }
 
     private function resetResultArrayKeys(\Closure $closure): array
@@ -187,6 +194,8 @@ class ShowsRatingEpisodesChart extends ApexChartWidget
 
     public function getCacheKey(): string
     {
-        return 'showsRatingEpisodesChart';
+        return 'showsRatingEpisodesChart'
+            . '-' . $this->filterFormData['minimumAmountReviews']
+            . '-' . $this->filterFormData['maxAmountReviews'];
     }
 }

@@ -15,7 +15,8 @@ class MaximumAmountReviewsFilter
             ->label('Maximaal aantal reviews')
             ->default(Rating::query()->max('number_votes'))
             ->required()
-            ->minValue(0)
+            ->minValue(1)
+            ->gt('minimumAmountReviews')
             ->numeric()
             ->hintAction(
                 Action::make('clearField')
