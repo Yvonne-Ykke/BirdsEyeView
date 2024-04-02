@@ -50,7 +50,7 @@ class GenreRevenueTimelineChart extends ApexChartWidget
         }
 
         $options = $this->getChartOptions();
-
+//        dd($options);
         return [
             'chart' => [
                 'type' => 'line',

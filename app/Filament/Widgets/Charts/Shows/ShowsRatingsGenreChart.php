@@ -29,7 +29,7 @@ class ShowsRatingsGenreChart extends GenreRatingsChart
     {
         return [
             SortFilter::get(),
-            GenreFilter::get(),
+            GenreFilter::get()->maxItems(10),
             MinimumAmountReviewsFilter::get(),
             MaximumAmountReviewsFilter::get()
                 ->helperText('Door grote hoeveelheid te verwerken data kunnen deze filters traag zijn (10-15s)'),

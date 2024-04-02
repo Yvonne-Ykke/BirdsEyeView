@@ -77,6 +77,7 @@ class RuntimeChart extends ApexChartWidget
         return [
             GenreFilter::get()
                 ->live()
+                ->maxItems(10)
                 ->afterStateUpdated(function () {
                     $this->updateOptions();
                 }),

@@ -7,12 +7,14 @@ use App\Filament\Widgets\DefaultFilters\MaximumAmountReviewsFilter;
 use App\Filament\Widgets\DefaultFilters\MinimumAmountReviewsFilter;
 use App\Filament\Widgets\DefaultFilters\SortFilter;
 use App\Filament\Widgets\DefaultFilters\TitleTypesFilter;
+use App\Filament\Widgets\Support\ChartInterface;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class GenreRatingsChart extends ApexChartWidget
+class GenreRatingsChart extends ApexChartWidget implements ChartInterface
 {
     /**
      * Chart Id
@@ -77,7 +79,7 @@ class GenreRatingsChart extends ApexChartWidget
     {
         return [
             SortFilter::get(),
-            GenreFilter::get(),
+            GenreFilter::get()->maxItems(10),
             TitleTypesFilter::get(),
             MinimumAmountReviewsFilter::get(),
             MaximumAmountReviewsFilter::get()
@@ -90,8 +92,7 @@ class GenreRatingsChart extends ApexChartWidget
         return view('components.loading-icons.ball-clip-rotate-multiple');
     }
 
-
-    private function getChartData(): array
+    function buildQuery(): Builder
     {
         $query = DB::query()
             ->selectRaw("cast(sum(average_rating * number_votes) / sum(number_votes) as decimal(16, 2)) as y, genres.name as x")
@@ -122,16 +123,10 @@ class GenreRatingsChart extends ApexChartWidget
             $query->orderBy('y');
         }
 
-        $cacheKey = $this->getCacheKey();
-        return Cache::rememberForever($cacheKey, function () use ($query) {
-            return $query
-                ->get()
-                ->toArray();
-        });
-
+        return $query;
     }
 
-    private function getCacheKey(): string
+    public function getCacheKey(): string
     {
         $titleGenresFilterKey = !empty($this->filterFormData['genres'])
             ? implode('-', $this->filterFormData['genres'])
@@ -149,4 +144,20 @@ class GenreRatingsChart extends ApexChartWidget
             . '-' . $titleTypesFilterKey;
 
     }
+
+
+    public function getChartData(): array
+    {
+        $query = $this->buildQuery();
+        $cacheKey = $this->getCacheKey();
+
+        return Cache::rememberForever($cacheKey, function () use ($query) {
+            return $query
+                ->get()
+                ->toArray();
+        });
+
+    }
+
+
 }

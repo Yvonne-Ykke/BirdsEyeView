@@ -27,8 +27,7 @@ class GenreProfitPredictionChart extends Widget implements HasForms
             ->schema([
                 GenreFilter::get()
                     ->label('genre')
-                    ->multiple(false)
-                    ,
+                    ->multiple(false),
             ])
             ->statePath('data');
     }

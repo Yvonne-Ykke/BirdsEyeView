@@ -18,7 +18,6 @@ class GenreFilter
                 ->where('name', '!=', '\N')
                 ->where('name', '!=', 'Adult')
                 ->pluck('name', 'id'))
-            ->maxItems(10)
             ->hintAction(
                 Action::make('clearField')
                     ->label('Reset')

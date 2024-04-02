@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Widgets\Charts\General\ProfitRatingChart;
+use App\Filament\Widgets\Charts\Genres\GenreProfitPredictionChart;
 use App\Filament\Widgets\Stats\LatestImportStat;
 use Closure;
 use Filament\Widgets\AccountWidget;
@@ -36,6 +37,7 @@ class Dashboard extends \Filament\Pages\Dashboard
             AccountWidget::class,
             LatestImportStat::class,
             // ProfitRatingChart::class,        #Chart to show the profit compared to rating. Doesn't load properly.
+            GenreProfitPredictionChart::class,
         ];
     }
 
