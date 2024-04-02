@@ -25,7 +25,7 @@ class RuntimeChart extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Gemiddelde runtime per genre';
+    protected static ?string $heading = 'Gemiddelde tijdsduur van films per genre';
 
     protected static ?string $pollingInterval = null;
 

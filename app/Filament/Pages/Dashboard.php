@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\Charts\General\ProfitRatingChart;
 use App\Filament\Widgets\Stats\LatestImportStat;
 use Closure;
 use Filament\Widgets\AccountWidget;
@@ -34,6 +35,7 @@ class Dashboard extends \Filament\Pages\Dashboard
         return [
             AccountWidget::class,
             LatestImportStat::class,
+            ProfitRatingChart::class,
         ];
     }
 
