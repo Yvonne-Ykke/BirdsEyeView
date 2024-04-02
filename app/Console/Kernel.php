@@ -14,7 +14,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('import-movies-from-tmdb-files')->lastDayOfMonth();
-        $schedule->command('set-database-indexes')->everySixHours();
+        $schedule->command('set-database-indexes --cacheCharts=true')->everySixHours();
     }
 
     /**

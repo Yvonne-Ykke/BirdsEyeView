@@ -16,7 +16,7 @@ class SetDatabaseIndexes extends Command
      *
      * @var string
      */
-    protected $signature = 'app:set-database-indexes';
+    protected $signature = 'app:set-database-indexes {--cacheCharts=}';
 
     /**
      * The console command description.
@@ -38,6 +38,7 @@ class SetDatabaseIndexes extends Command
         $this->setTitlesIndexes();
         $this->setRatingsIndexes();
         Artisan::call('cache:clear');
+        $this->cacheCharts();
     }
 
     private function checkDatabaseImporting(): bool
@@ -90,6 +91,14 @@ class SetDatabaseIndexes extends Command
                 $this->warn("Ratings number_votes index already exists, Skipping...");
             }
         });
+    }
+
+    private function cacheCharts(): void
+    {
+        if ($this->option('cacheCharts')) {
+            Artisan::call('cache:charts');
+            $this->info('Graphs are being cached');
+        }
     }
 
 
