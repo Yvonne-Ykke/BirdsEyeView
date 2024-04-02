@@ -5,10 +5,11 @@ use Illuminate\Database\Query\Builder;
 
 interface ChartInterface
 {
-
     function getChartData(): array;
 
-    function getCacheKey(): string;
+    function getCacheKey(array $filterValues): string;
 
-    function buildQuery(): Builder;
+    function buildQuery(array $filterValues): Builder;
+
+    function getFilterValues(): array;
 }

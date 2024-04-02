@@ -19,8 +19,8 @@
     DB_HOST=127.0.0.1
     DB_PORT=5432 (or personal port)
     DB_DATABASE=birds_eye_view
-    DB_USERNAME= <username>
-    DB_PASSWORD= <password>
+    DB_USERNAME= < username >
+    DB_PASSWORD= < password >
 
 > php artisan migrate
 
@@ -85,7 +85,7 @@ Graag een kleinere dataset met alleen films? Skip naar tmdb kopje
 ### data importeren
 
 #### Gelimiteerd aantal film data
-> php artisan app:import-movies-from-tmdb --recordsToImport= <aantal records te importeren>, moet groter zijn dan 100
+> php artisan app:import-movies-from-tmdb --recordsToImport= < aantal records te importeren >, moet groter zijn dan 100
 
 #### Alle data
 > php artisan app:import-movies-from-tmdb-files
@@ -105,3 +105,7 @@ Alleen geïnteresseerd in films of production companies?
 ### Toch niet? Even indexes weghalen voor snellere import.
 
 > php artisan app:drop-database-indexes
+
+### Grafieken alvast cachen?
+
+> php artisan cache:charts

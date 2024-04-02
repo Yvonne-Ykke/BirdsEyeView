@@ -2,9 +2,11 @@
 
 namespace App\Console\Commands\Support;
 
-use App\Filament\Widgets\Support\Actions\GetChartInterfaceImplementations;
+use App\Filament\Widgets\Support\Actions\GetChartInterfaceImplementationObjects;
 use App\Filament\Widgets\Support\ChartInterface;
+use App\Jobs\CacheQuery;
 use Illuminate\Console\Command;
+use Illuminate\Support\Collection;
 
 class CacheCharts extends Command
 {
@@ -22,16 +24,30 @@ class CacheCharts extends Command
      */
     protected $description = 'Command description';
 
-    protected array $charts;
-
+    protected Collection $charts;
 
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): void
     {
-        $this->charts = app(GetChartInterfaceImplementations::class)();
-        dd($this->charts);
-        dd($this->charts);
+        $this->charts = collect(app(GetChartInterfaceImplementationObjects::class)());
+
+        $this->charts->each(function (ChartInterface $item) {
+            $filters = $item->getFilterValues();
+            $query = $item->buildQuery($filters);
+            $cacheKey = $item->getCacheKey($filters);
+
+            CacheQuery::dispatch($query, $cacheKey);
+            $this->handleFilters($filters);
+        });
+
     }
+
+    private function handleFilters(array $filters)
+    {
+        //TODO IMPLEMENT
+    }
+
+
 }
