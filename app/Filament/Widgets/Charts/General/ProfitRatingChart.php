@@ -50,7 +50,7 @@ class ProfitRatingChart extends ApexChartWidget
 
         return [
             'chart' => [
-                'type' => 'line',
+                'type' => 'scatter',
                 'height' => 300,
             ],
             'series' => [
@@ -102,9 +102,9 @@ class ProfitRatingChart extends ApexChartWidget
         $query = Rating::query()
         ->selectRaw('CAST(SUM(average_rating * number_votes) / SUM(number_votes) AS DECIMAL(16, 2)) AS y')
         ->selectRaw('CASE 
-                WHEN revenue >= budget THEN ((CAST(revenue AS DECIMAL(18,2)) - CAST(budget AS DECIMAL(18,2))) / CAST(budget AS DECIMAL(18,2))) * 100
-                ELSE -((CAST(budget AS DECIMAL(18,2)) - CAST(revenue AS DECIMAL(18,2))) / CAST(revenue AS DECIMAL(18,2))) * 100
-            END AS x')
+                WHEN revenue >= budget THEN ((CAST(revenue AS DECIMAL(16,2)) - CAST(budget AS DECIMAL(16,2))) / CAST(budget AS DECIMAL(16,2))) * 100
+                ELSE -((CAST(budget AS DECIMAL(16,2)) - CAST(revenue AS DECIMAL(16,2))) / CAST(revenue AS DECIMAL(16,2))) * 100
+                END AS x')
         ->from('titles')
         ->join('model_has_ratings', 'titles.id', '=', 'model_has_ratings.model_id')
         ->whereNotNull('revenue')
@@ -116,7 +116,6 @@ class ProfitRatingChart extends ApexChartWidget
         ->groupBy('x')
         ->limit(10);
     
-
         $titleGenreFilterKey = '';
         $titleTypesFilterKey = '';
 
@@ -134,23 +133,12 @@ class ProfitRatingChart extends ApexChartWidget
         $values = $query
                 ->get()
                 ->toArray();
-        #dd($values);
-
-        // $data = [];
-        // foreach ($values as $item) {
-        //     $data[] = [
-        //         'x' => $item['x'],
-        //         'y' => $item['y'],
-        //     ];
-        // }
 
         $cacheKey = 'ProfitRatingChart'
             . '-' . $titleGenreFilterKey
             . '-' . $titleTypesFilterKey;
 
-        // dd($values);
-        // return Cache::rememberForever($cacheKey, function () use ($query) {
             return $values;
-        // });
+
     }
 }

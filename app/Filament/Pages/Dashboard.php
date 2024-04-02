@@ -35,7 +35,7 @@ class Dashboard extends \Filament\Pages\Dashboard
         return [
             AccountWidget::class,
             LatestImportStat::class,
-            ProfitRatingChart::class,
+            // ProfitRatingChart::class,        #Chart to show the profit compared to rating. Doesn't load properly.
         ];
     }
 
