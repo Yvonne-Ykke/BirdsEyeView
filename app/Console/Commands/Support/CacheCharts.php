@@ -4,7 +4,7 @@ namespace App\Console\Commands\Support;
 
 use App\Filament\Widgets\Support\Actions\GetChartInterfaceImplementationObjects;
 use App\Filament\Widgets\Support\ChartInterface;
-use App\Jobs\CacheQuery;
+use App\Jobs\CacheQueryJob;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
 
@@ -38,7 +38,7 @@ class CacheCharts extends Command
             $query = $item->buildQuery($filters);
             $cacheKey = $item->getCacheKey($filters);
 
-            CacheQuery::dispatch($query, $cacheKey);
+            CacheQueryJob::dispatch(collect($query), $cacheKey);
             $this->handleFilters($filters);
         });
 

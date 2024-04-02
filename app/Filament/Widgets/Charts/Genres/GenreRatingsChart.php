@@ -164,8 +164,8 @@ class GenreRatingsChart extends ApexChartWidget implements ChartInterface
     function getFilterValues(): array
     {
         return [
-            'genres' => $this->filterFormData['genres'] ?? [],
-            'titleTypes' => $this->filterFormData['titleTypes'] ?? [],
+            'genres' => $this->filterFormData['genres'] ?? null,
+            'titleTypes' => $this->filterFormData['titleTypes'] ?? null,
             'minimumAmountReviews' => $this->filterFormData['minimumAmountReviews'] ?? 1,
             'maxAmountReviews' => $this->filterFormData['maxAmountReviews'] ?? Rating::query()->max('number_votes'),
             'sort' => $this->filterFormData['sort'] ?? true,

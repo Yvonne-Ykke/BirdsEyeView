@@ -4,12 +4,12 @@ namespace App\Filament\Widgets\Charts\Genres;
 
 use App\Filament\Widgets\DefaultFilters\GenreFilter;
 use App\Filament\Widgets\DefaultFilters\TitleTypesFilter;
+use App\Filament\Widgets\Support\ChartInterface;
 use App\Models\Genre;
 use App\Models\Title;
 use App\Support\Enums\Colors;
 use Carbon\Carbon;
 use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Set;
 use Filament\Support\RawJs;
@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class GenreRevenueTimelineChart extends ApexChartWidget
+class GenreRevenueTimelineChart extends ApexChartWidget implements ChartInterface
 {
     /**
      * Chart Id
@@ -49,7 +49,7 @@ class GenreRevenueTimelineChart extends ApexChartWidget
             return [];
         }
 
-        $options = $this->getChartOptions();
+        $options = $this->getChartData();
 //        dd($options);
         return [
             'chart' => [
@@ -148,26 +148,27 @@ class GenreRevenueTimelineChart extends ApexChartWidget
         return view('components.loading-icons.ball-clip-rotate-multiple');
     }
 
-    private function getChartOptions(): array
+    public function getChartData(): array
     {
         $genres = $this->getGenres();
         $options = [];
         $i = 0;
 
         foreach ($genres as $genre) {
-
-            $options[$i]['data'] = $this->getGenreRevenueTimeline($genre);
+            $this->filterFormData['genreId'] = $genre->id;
+            $options[$i]['data'] = $this->getGenreRevenueTimeline();
             $options[$i]['name'] = $genre->name;
             $i++;
         }
         return $options;
     }
 
-    private function getGenreRevenueTimeline(Genre $genre): array
+    private function getGenreRevenueTimeline(): array
     {
-        $query = $this->buildQuery($genre);
+        $filters = $this->getFilterValues();
+        $query = $this->buildQuery($filters);
+        $cacheKey = $this->getCacheKey($filters);
 
-        $cacheKey = $this->getCacheKey($genre);
         return Cache::rememberForever($cacheKey, function () use ($query) {
             return $query->groupBy('start_year')
                 ->orderBy('start_year')
@@ -176,18 +177,17 @@ class GenreRevenueTimelineChart extends ApexChartWidget
         });
     }
 
-    private function getCacheKey(Genre $genre): string
+    public function getCacheKey(array $filterValues): string
     {
-        $yearTillKey = $this->filterFormData['yearTill'] ?? '' ;
 
-        $titleTypesFilterKey = !empty($this->filterFormData['titleTypes'])
-            ? implode('-', $this->filterFormData['titleTypes'])
+        $titleTypesFilterKey = !empty($filterValues['titleTypes'])
+            ? implode('-', $filterValues['titleTypes'])
             : '';
 
         return 'getGenreRevenueTimeline-'
-            . str_replace(' ', '-', $genre->name)
-            . '-' . $yearTillKey
-            . '-' . $this->filterFormData['yearFrom']
+            . $filterValues['genreId']
+            . '-' . $filterValues['yearTill']
+            . '-' . $filterValues['yearFrom']
             . '-' . $titleTypesFilterKey;
     }
 
@@ -208,25 +208,36 @@ class GenreRevenueTimelineChart extends ApexChartWidget
             ->get();
     }
 
-    private function buildQuery(Genre $genre): Builder
+    public function buildQuery(array $filterValues): Builder
     {
         $query = Title::query()
             ->selectRaw('start_year as x, cast(sum(revenue - budget) / 1000000 as decimal(16)) as y')
             ->join('title_genres', 'titles.id', '=', 'title_genres.title_id')
-            ->where('title_genres.genre_id', $genre->id)
+            ->where('title_genres.genre_id', $filterValues['genreId'])
             ->where('revenue', '>', 0)
             ->where('budget', '>', 0)
-            ->where('start_year', '>=', $this->filterFormData['yearFrom']);
+            ->where('start_year', '>=', $filterValues['yearFrom'])
+            ->groupBy('x');
 
-        if ($this->filterFormData['yearTill']) {
-            $query->where('end_year', '<=', $this->filterFormData['yearTill']);
+        if ($filterValues['yearTill']) {
+            $query->where('end_year', '<=', $filterValues['yearTill']);
         }
 
-        if (!empty($this->filterFormData['titleTypes'])) {
-            $query->whereIn('titles.type', $this->filterFormData['titleTypes']);
+        if (!empty($filterValues['titleTypes'])) {
+            $query->whereIn('titles.type', $filterValues['titleTypes']);
         }
 
         return $query;
     }
 
+    function getFilterValues(): array
+    {
+        return [
+            'genres' => $this->filterFormData['genres'] ?? null,
+            'titleTypes' => $this->filterFormData['titleTypes'] ?? null,
+            'genreId' => $this->filterFormData['genreId'] ?? Genre::first()?->id,
+            'yearTill' => $this->filterFormData['yearTill'] ?? null,
+            'yearFrom' => $this->filterFormData['yearFrom'] ?? 1950,
+        ];
+    }
 }

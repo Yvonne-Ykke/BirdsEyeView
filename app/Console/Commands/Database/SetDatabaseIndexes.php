@@ -38,6 +38,7 @@ class SetDatabaseIndexes extends Command
         $this->setTitlesIndexes();
         $this->setRatingsIndexes();
         Artisan::call('cache:clear');
+        $this->info('Cleared cache');
         $this->cacheCharts();
     }
 

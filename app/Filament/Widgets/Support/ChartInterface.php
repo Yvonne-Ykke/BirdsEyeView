@@ -1,15 +1,14 @@
 <?php
 
 namespace App\Filament\Widgets\Support;
-use Illuminate\Database\Query\Builder;
 
 interface ChartInterface
 {
     function getChartData(): array;
 
-    function getCacheKey(array $filterValues): string;
+    function buildQuery(array $filterValues): \Illuminate\Database\Query\Builder | \Illuminate\Database\Eloquent\Builder;
 
-    function buildQuery(array $filterValues): Builder;
+    function getCacheKey(array $filterValues): string;
 
     function getFilterValues(): array;
 }
