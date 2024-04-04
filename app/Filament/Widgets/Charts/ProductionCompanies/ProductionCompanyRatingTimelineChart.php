@@ -20,14 +20,14 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class ProductionCompanyRevenueTimelineChart extends ApexChartWidget implements ChartInterface
+class ProductionCompanyRatingTimelineChart extends ApexChartWidget implements ChartInterface
 {
     /**
      * Chart Id
      *
      * @var string
      */
-    protected static string $chartId = 'ProductionCompanyRevenueTimelineChart';
+    protected static string $chartId = 'ProductionCompanyRatingTimelineChart';
 
     /**
      * Widget Title
