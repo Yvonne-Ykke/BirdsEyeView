@@ -1,30 +1,29 @@
 <?php
 
-namespace App\Filament\Widgets\DefaultFilters;
+namespace App\Filament\Widgets\Charts\DefaultChartFilters;
 
-use App\Support\Enums\TitleTypes;
+use App\Models\Genre;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Set;
 
-class TitleTypesFilter
+class GenreFilter
 {
     public static function get(): Select
     {
-        return Select::make('titleTypes')
+        return Select::make('genres')
             ->multiple()
-            ->label('Type titels')
-            ->options(function () {
-                return TitleTypes::translationArray();
-            })
-            ->preload()
-            ->maxItems(10)
+            ->label('Toon enkel')
+            ->options(Genre::query()
+                ->where('name', '!=', '\N')
+                ->where('name', '!=', 'Adult')
+                ->pluck('name', 'id'))
             ->hintAction(
                 Action::make('clearField')
                     ->label('Reset')
                     ->icon('heroicon-m-trash')
                     ->action(function (Set $set) {
-                        $set('titleTypes', []);
+                        $set('genres', []);
                     })
             )
             ->native(false)

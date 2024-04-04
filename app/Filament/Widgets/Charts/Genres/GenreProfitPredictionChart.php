@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets\Charts\Genres;
 
-use App\Filament\Widgets\DefaultFilters\GenreFilter;
+use App\Filament\Widgets\Charts\DefaultChartFilters\GenreFilter;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;

@@ -2,11 +2,10 @@
 
 namespace App\Filament\Widgets\Charts\Genres;
 
-use App\Filament\Widgets\DefaultFilters\GenreFilter;
-use App\Filament\Widgets\DefaultFilters\TitleTypesFilter;
+use App\Filament\Widgets\Charts\DefaultChartFilters\GenreFilter;
+use App\Filament\Widgets\Charts\DefaultChartFilters\TitleTypesFilter;
 use App\Filament\Widgets\Support\ChartInterface;
 use App\Models\Genre;
-use App\Models\Rating;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;

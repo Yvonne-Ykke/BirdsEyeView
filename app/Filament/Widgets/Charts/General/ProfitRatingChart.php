@@ -2,18 +2,11 @@
 
 namespace App\Filament\Widgets\Charts\General;
 
-use App\Filament\Widgets\DefaultFilters\GenreFilter;
-use App\Filament\Widgets\DefaultFilters\TitleTypesFilter;
-use App\Models\Genre;
+use App\Filament\Widgets\Charts\DefaultChartFilters\GenreFilter;
+use App\Filament\Widgets\Charts\DefaultChartFilters\TitleTypesFilter;
 use App\Models\Rating;
 use App\Support\Enums\Colors;
-use Doctrine\DBAL\Query;
-use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Components\Select;
-use Filament\Forms\Set;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
 class ProfitRatingChart extends ApexChartWidget
@@ -101,7 +94,7 @@ class ProfitRatingChart extends ApexChartWidget
     {
         $query = Rating::query()
         ->selectRaw('CAST(SUM(average_rating * number_votes) / SUM(number_votes) AS DECIMAL(16, 2)) AS y')
-        ->selectRaw('CASE 
+        ->selectRaw('CASE
                 WHEN revenue >= budget THEN ((CAST(revenue AS DECIMAL(16,2)) - CAST(budget AS DECIMAL(16,2))) / CAST(budget AS DECIMAL(16,2))) * 100
                 ELSE -((CAST(budget AS DECIMAL(16,2)) - CAST(revenue AS DECIMAL(16,2))) / CAST(revenue AS DECIMAL(16,2))) * 100
                 END AS x')
@@ -110,12 +103,12 @@ class ProfitRatingChart extends ApexChartWidget
         ->whereNotNull('revenue')
         ->whereNotNull('budget')
         ->where('revenue', '!=', 0)
-        ->where('budget', '!=', 0)     
+        ->where('budget', '!=', 0)
         ->where('model_has_ratings.number_votes', '>=', 50)
         ->orderBy('y')
         ->groupBy('x')
         ->limit(10);
-    
+
         $titleGenreFilterKey = '';
         $titleTypesFilterKey = '';
 

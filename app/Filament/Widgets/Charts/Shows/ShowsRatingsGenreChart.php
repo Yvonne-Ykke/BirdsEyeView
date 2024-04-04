@@ -2,11 +2,11 @@
 
 namespace App\Filament\Widgets\Charts\Shows;
 
+use App\Filament\Widgets\Charts\DefaultChartFilters\GenreFilter;
+use App\Filament\Widgets\Charts\DefaultChartFilters\MaximumAmountReviewsFilter;
+use App\Filament\Widgets\Charts\DefaultChartFilters\MinimumAmountReviewsFilter;
+use App\Filament\Widgets\Charts\DefaultChartFilters\SortFilter;
 use App\Filament\Widgets\Charts\Genres\GenreRatingsChart;
-use App\Filament\Widgets\DefaultFilters\GenreFilter;
-use App\Filament\Widgets\DefaultFilters\MaximumAmountReviewsFilter;
-use App\Filament\Widgets\DefaultFilters\MinimumAmountReviewsFilter;
-use App\Filament\Widgets\DefaultFilters\SortFilter;
 
 class ShowsRatingsGenreChart extends GenreRatingsChart
 {

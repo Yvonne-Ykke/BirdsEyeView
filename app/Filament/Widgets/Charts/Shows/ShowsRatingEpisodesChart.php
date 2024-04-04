@@ -2,8 +2,8 @@
 
 namespace App\Filament\Widgets\Charts\Shows;
 
-use App\Filament\Widgets\DefaultFilters\MaximumAmountReviewsFilter;
-use App\Filament\Widgets\DefaultFilters\MinimumAmountReviewsFilter;
+use App\Filament\Widgets\Charts\DefaultChartFilters\MaximumAmountReviewsFilter;
+use App\Filament\Widgets\Charts\DefaultChartFilters\MinimumAmountReviewsFilter;
 use App\Models\Title;
 use App\Support\Enums\Colors;
 use Filament\Support\RawJs;

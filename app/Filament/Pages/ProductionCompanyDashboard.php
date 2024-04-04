@@ -5,6 +5,8 @@ namespace App\Filament\Pages;
 use App\Filament\Widgets\Charts\Genres\AmountOfTitlesPerGenreChart;
 use App\Filament\Widgets\Charts\Genres\GenreRatingsChart;
 use App\Filament\Widgets\Charts\Genres\GenreRevenueTimelineChart;
+use App\Filament\Widgets\Charts\ProductionCompanies\ProductionCompanyRevenueTimelineChart;
+use App\Filament\Widgets\Tables\HighestRatingProductionCompaniesTable;
 use Closure;
 use Illuminate\Support\Facades\Route;
 
@@ -36,7 +38,8 @@ class ProductionCompanyDashboard extends \Filament\Pages\Dashboard
     public function getWidgets(): array
     {
         return [
-
+//            HighestRatingProductionCompaniesTable::class,
+            ProductionCompanyRevenueTimelineChart::class,
         ];
     }
 

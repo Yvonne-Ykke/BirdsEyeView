@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Widgets\DefaultFilters;
+namespace App\Filament\Widgets\Charts\DefaultChartFilters;
 
 use Filament\Forms\Components\Toggle;
 

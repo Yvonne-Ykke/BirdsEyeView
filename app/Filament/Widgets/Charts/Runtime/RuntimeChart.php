@@ -2,8 +2,8 @@
 
 namespace App\Filament\Widgets\Charts\Runtime;
 
-use App\Filament\Widgets\DefaultFilters\GenreFilter;
-use App\Filament\Widgets\DefaultFilters\TitleTypesFilter;
+use App\Filament\Widgets\Charts\DefaultChartFilters\GenreFilter;
+use App\Filament\Widgets\Charts\DefaultChartFilters\TitleTypesFilter;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
