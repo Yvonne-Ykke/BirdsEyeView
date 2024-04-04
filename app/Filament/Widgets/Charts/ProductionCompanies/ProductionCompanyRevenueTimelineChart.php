@@ -10,9 +10,6 @@ use App\Filament\Widgets\Support\ChartInterface;
 use App\Models\ProductionCompany;
 use App\Models\Title;
 use App\Support\Enums\Colors;
-use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Set;
 use Filament\Support\RawJs;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
@@ -128,7 +125,7 @@ class ProductionCompanyRevenueTimelineChart extends ApexChartWidget implements C
         return $options;
     }
 
-    private function getCompanyRevenueTimeline(): array
+    protected function getCompanyRevenueTimeline(): array
     {
         $filters = $this->getFilterValues();
         $query = $this->buildQuery($filters);
@@ -171,7 +168,7 @@ class ProductionCompanyRevenueTimelineChart extends ApexChartWidget implements C
         return $query;
     }
 
-    function getFilterValues(): array
+    public function getFilterValues(): array
     {
         return [
             'minimalAmountOfProductions' => $this->filterFormData['minimalAmountOfProductions'] ?? 20,
@@ -182,7 +179,7 @@ class ProductionCompanyRevenueTimelineChart extends ApexChartWidget implements C
         ];
     }
 
-    private function getProductionCompanies(): Collection|array
+    protected function getProductionCompanies(): Collection|array
     {
         return ProductionCompany::query()
             ->whereIn('id', ($this->filterFormData['productionCompanies'] ?? []))

@@ -10,17 +10,12 @@ use App\Filament\Widgets\Support\ChartInterface;
 use App\Models\ProductionCompany;
 use App\Models\Title;
 use App\Support\Enums\Colors;
-use Filament\Forms\Components\Actions\Action;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Set;
+use Filament\Forms\Get;
 use Filament\Support\RawJs;
-use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
-use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 
-class ProductionCompanyRatingTimelineChart extends ApexChartWidget implements ChartInterface
+class ProductionCompanyRatingTimelineChart extends ProductionCompanyRevenueTimelineChart implements ChartInterface
 {
     /**
      * Chart Id
@@ -34,16 +29,10 @@ class ProductionCompanyRatingTimelineChart extends ApexChartWidget implements Ch
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Bedrijf winst tijdlijn';
+    protected static ?string $heading = 'Bedrijf gemiddelde recensies tijdlijn';
 
     protected static ?string $pollingInterval = null;
 
-    /**
-     * Chart options (series, labels, types, size, animations...)
-     * https://apexcharts.com/docs/options
-     *
-     * @return array
-     */
     protected function getOptions(): array
     {
         if (!$this->readyToLoad) {
@@ -71,6 +60,8 @@ class ProductionCompanyRatingTimelineChart extends ApexChartWidget implements Ch
                         'fontFamily' => 'inherit',
                     ],
                 ],
+                'min' => 0,
+                'max' => 10,
             ],
             'colors' => Colors::getRandom(max(count($options), 1)),
             'stroke' => [
@@ -80,71 +71,46 @@ class ProductionCompanyRatingTimelineChart extends ApexChartWidget implements Ch
         ];
     }
 
-    protected function extraJsOptions(): ?RawJs
-    {
-        return RawJs::make(<<<'JS'
-            {
-                yaxis: {
-                    labels: {
-                        formatter: function(val, index) {
-                            return val + ' mln'
-                        }
-                    }
-                }
-            }
-    JS
-        );
-    }
-
     protected function getFormSchema(): array
     {
         return [
             MinimalAmountOfProductionsFilter::get(),
             ProductionCompaniesFilter::get()
+                ->options((function (Get $get) {
+                    $minimalAmountOfReviews = $get('minimalAmountOfProductions');
+                    return Cache::rememberForever(
+                        key: 'ProductionCompaniesRatingFilter-' . max($get('minimalAmountOfProductions'), 1),
+                        callback: function () use ($minimalAmountOfReviews) {
+                            return ProductionCompany::query()
+                                ->join('model_has_production_company as mhpc', 'production_companies.id', '=', 'mhpc.production_company_id')
+                                ->join('titles', 'mhpc.model_id', '=', 'titles.id')
+                                ->join('model_has_ratings as mhr', 'titles.id', '=', 'mhr.model_id')
+                                ->where('mhr.number_votes', '>', 0)
+                                ->groupBy('production_companies.id')
+                                ->groupBy(['production_companies.name', 'production_companies.id'])
+                                ->havingRaw('COUNT(DISTINCT mhpc.id) > ' . max($minimalAmountOfReviews, 1))
+                                ->pluck('production_companies.name', 'production_companies.id');
+                        });
+                }))
+                ->helperText('Staat er een bedrijf niet tussen? Het kan zijn dat we daar geen recensie gegevens over hebben')
                 ->maxItems(3),
             YearFromFilter::get(),
             YearTillFilter::get(),
         ];
     }
 
-    protected function getLoadingIndicator(): null|string|View
+
+    protected function extraJsOptions(): ?RawJs
     {
-        return view('components.loading-icons.ball-clip-rotate-multiple');
-    }
-
-    public function getChartData(): array
-    {
-        $productionCompanies = $this->getProductionCompanies();
-        $options = [];
-        $i = 0;
-
-        foreach ($productionCompanies as $company) {
-            $this->filterFormData['productionCompanyId'] = $company->id;
-            $options[$i]['data'] = $this->getCompanyRevenueTimeline();
-            $options[$i]['name'] = $company->name;
-            $i++;
-        }
-
-        return $options;
-    }
-
-    private function getCompanyRevenueTimeline(): array
-    {
-        $filters = $this->getFilterValues();
-        $query = $this->buildQuery($filters);
-        $cacheKey = $this->getCacheKey($filters);
-
-        return Cache::rememberForever($cacheKey, function () use ($query) {
-            return $query
-                ->orderBy('start_year')
-                ->get()
-                ->toArray();
-        });
+        return RawJs::make(<<<'JS'
+            {}
+        JS
+        );
     }
 
     public function getCacheKey(array $filterValues): string
     {
-        return 'getCompanyRevenueTimeline-'
+        return 'getCompanyRatingTimeline-'
             . '-' . $filterValues['yearTill']
             . '-' . $filterValues['yearFrom']
             . '-' . $filterValues['productionCompanyId'];
@@ -154,13 +120,13 @@ class ProductionCompanyRatingTimelineChart extends ApexChartWidget implements Ch
     public function buildQuery(array $filterValues): Builder
     {
         $query = Title::query()
-            ->selectRaw('start_year as x, cast(sum(revenue - budget) / 1000000 as decimal(16)) as y')
+            ->selectRaw('start_year as x, cast(sum(average_rating * number_votes) / sum(number_votes) as decimal(16, 2)) as y')
             ->join('model_has_production_company as mhpc', function ($join) use ($filterValues) {
                 $join->on('titles.id', '=', 'mhpc.model_id')
                     ->where('mhpc.production_company_id', '=', $filterValues['productionCompanyId']);
             })
-            ->where('revenue', '>', 0)
-            ->where('budget', '>', 0)
+            ->join('model_has_ratings as mhr', 'titles.id', '=', 'mhr.model_id')
+            ->where('mhr.number_votes', '>', 0)
             ->where('start_year', '>=', $filterValues['yearFrom'])
             ->groupBy('x');
 
@@ -171,21 +137,4 @@ class ProductionCompanyRatingTimelineChart extends ApexChartWidget implements Ch
         return $query;
     }
 
-    function getFilterValues(): array
-    {
-        return [
-            'minimalAmountOfProductions' => $this->filterFormData['minimalAmountOfProductions'] ?? 20,
-            'productionCompanies' => $this->filterFormData['productionCompanies'] ?? null,
-            'productionCompanyId' => $this->filterFormData['productionCompanyId'] ?? ProductionCompany::first()?->id,
-            'yearTill' => $this->filterFormData['yearTill'] ?? null,
-            'yearFrom' => $this->filterFormData['yearFrom'] ?? 1950,
-        ];
-    }
-
-    private function getProductionCompanies(): Collection|array
-    {
-        return ProductionCompany::query()
-            ->whereIn('id', ($this->filterFormData['productionCompanies'] ?? []))
-            ->get();
-    }
 }
