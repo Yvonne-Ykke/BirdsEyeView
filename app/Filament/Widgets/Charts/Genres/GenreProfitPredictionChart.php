@@ -37,9 +37,9 @@ class GenreProfitPredictionChart extends Widget implements HasForms
 
     public function create(): void
     {
-        $path = storage_path('app/r');
+        $path = storage_path('app/public/r');
 
-        app(FindOrCreateStorageDirectory::class)('/r');
+        app(FindOrCreateStorageDirectory::class)('public/r');
         $process = new Process([
             'Rscript',
             base_path('scripts/R/genre-predictions.R'),

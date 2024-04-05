@@ -6,11 +6,11 @@ use Livewire\Component;
 
 class GenrePredictionImage extends Component
 {
-    public string $image;
+    public string $imageName;
 
-    public function mount(string $image)
+    public function mount(string $imageName)
     {
-        $this->image = $image;
+        $this->imageName = $imageName;
     }
 
     public function render()
