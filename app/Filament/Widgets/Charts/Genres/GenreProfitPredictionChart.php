@@ -17,6 +17,8 @@ class GenreProfitPredictionChart extends Widget implements HasForms
 
     protected static string $view = 'filament.widgets.genre-profit-prediction-chart';
 
+    protected $listeners = ['refreshImage' => '$refresh'];
+
     public ?array $data = [];
 
     public function mount(): void
@@ -53,5 +55,7 @@ class GenreProfitPredictionChart extends Widget implements HasForms
         if (!$process->isSuccessful()) {
             throw new Exception($process->getErrorOutput());
         }
+
+        $this->emit('refreshImage');
     }
 }
