@@ -17,10 +17,10 @@ def main():
     # episodes.execute()
 
     # Names moet je draaien voordat je crew of principals draait
-    # names.execute()
+    names.execute()
 
     # Als laaste draaien:
-    principals.execute()
+    # principals.execute()
     # crew.execute()
 
 

@@ -14,7 +14,11 @@
                 </form>
             </div>
             <div style="width: 100%">
-                <img style="width: 100%" src="https://picsum.photos/100/100">
+                @if(file_exists(public_path('randomtest.png')))
+                    <img style="width: 100%" src="{{ asset('randomtest.png') }}">
+                @else
+                    <p>Wachten op data...</p>
+                @endif
             </div>
         </div>
         <x-filament-actions::modals/>

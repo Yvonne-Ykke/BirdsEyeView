@@ -30,10 +30,6 @@
 
 > php artisan shield:super-admin --user=1
 
-> cd scripts/R
-
-> Rscript -e "renv::restore()"
-
 # R database verbinding
 
 > R versie 4.3.3 installeren en PATH aanpassen in de system variables
