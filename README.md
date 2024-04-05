@@ -2,6 +2,16 @@
 
 <h1> Install guide </h1>
 
+#### Requirements
+
+* PHP 8.1 or higher
+* Composer
+* Nodejs 18 or higher
+* Pgsql
+* Localhost like Laravel Valet
+
+### setup
+
 > composer install
 
 > npm install
