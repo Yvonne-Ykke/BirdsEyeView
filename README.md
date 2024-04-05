@@ -1,3 +1,5 @@
+### Voor laravel directory structuur, zie einde bestand
+
 <h1> Install guide </h1>
 
 > composer install
@@ -29,6 +31,8 @@
 > php artisan make:filament-user
 
 > php artisan shield:super-admin --user=1
+ 
+> php artisan storage:link
 
 # R database verbinding
 
@@ -105,3 +109,77 @@ Alleen geïnteresseerd in films of production companies?
 ### Grafieken alvast cachen?
 
 > php artisan cache:charts
+
+
+## Laravel directory guide
+
+Lieve lezer, omdat we gebruik maken van de frameworks Laravel en Filamentphp hebben we nogal wat folders met code in dit project. Hieronder even een kort overzicht waar wat staat.
+Hier staan alleen de folders in de relevant zijn tot dit project.
+
+### app
+De belangrijkste folder met alle business logica. Hieronder sub-directories
+
+#### Api
+Alle code die relevant is voor het gebruiken van api's om data mee op te halen
+
+#### Console
+Alle door ons gemaakte artisan commands <br>
+Kernel staat een scheduler (soort Crontab) in. Hier worden import scripts maandelijks uitgevoerd.
+
+#### Filament
+Alles wat te maken heeft met Dashboard interface, hier staan alle dashboards, widgets en resources (overzichts paginas)
+
+#### Jobs
+Alle asynchroon uitvoerbare jobs die door de queue driver afgehandeld kunnen worden.
+
+#### Models
+Models zijn objecten die te zien zijn als 1 record van een database tabel. 
+Voorbeeld: genres db tabel heeft de Model Genre. In deze models staan onderlinge relaties met andere models aangegeven
+en zijn ze te gebruiken om de database aan te spreken via Eloquent ORM vanuit code.
+
+#### Policies
+Policies controleren of een gebruiker de rechten heeft om een model event (bijvoorbeeld: create, update, read delete) uit te voeren.
+
+#### Python
+Alle python scripts die we gebruiken om imdb data te importeren
+
+#### Support
+Algemene support modules zoals applicatie wijde Enums of Action classes.
+
+### Bootstrap
+Niet relevant
+
+### config
+Niet relevant
+
+### database
+Migraties: code om database aan te maken / aan te passen <br>
+Factories: niet relevant
+Seeders: niet relevant
+
+### lang
+Vertaling bestanden, dit zijn veelal gepublishte bestanden vanuit packages. Niet relevant
+
+### node_modules
+Alle javascript packages, niet relevant
+
+### public
+Niet relevant
+
+### resources
+Frontend gerelateerde code
+
+### routes
+Niet relevant
+
+### scripts
+Alle externe scripts die we gebruiken, in dit geval R
+
+### storage
+Alle bestanden die gegenereerd worden zoals imdb en tmdb import bestanden of afbeeldingen die gegenereerd worden door R
+
+### tests
+Niet relevant
+
+### vendor
+Alle door composer geïnstalleerde packages 
