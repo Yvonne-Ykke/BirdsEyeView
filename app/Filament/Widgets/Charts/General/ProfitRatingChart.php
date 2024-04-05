@@ -87,7 +87,7 @@ class ProfitRatingChart extends ApexChartWidget
 
     protected function getLoadingIndicator(): null|string|View
     {
-        return view('components.loading-icons.ball-clip-rotate-multiple');
+        return view('components.loading-icons.ball-pulse');
     }
 
     private function getChartData(): array

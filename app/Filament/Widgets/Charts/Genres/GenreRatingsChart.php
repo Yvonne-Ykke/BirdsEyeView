@@ -90,7 +90,7 @@ class GenreRatingsChart extends ApexChartWidget implements ChartInterface
 
     protected function getLoadingIndicator(): null|string|View
     {
-        return view('components.loading-icons.ball-clip-rotate-multiple');
+        return view('components.loading-icons.ball-pulse');
     }
 
     function buildQuery(array $filterValues): Builder

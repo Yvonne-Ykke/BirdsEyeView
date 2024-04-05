@@ -89,7 +89,7 @@ class AmountOfTitlesPerGenreChart extends ApexChartWidget implements ChartInterf
 
     protected function getLoadingIndicator(): null|string|View
     {
-        return view('components.loading-icons.ball-clip-rotate-multiple');
+        return view('components.loading-icons.ball-pulse');
     }
 
     public function getChartData(): array

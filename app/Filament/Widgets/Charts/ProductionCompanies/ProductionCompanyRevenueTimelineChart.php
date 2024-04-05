@@ -106,7 +106,7 @@ class ProductionCompanyRevenueTimelineChart extends ApexChartWidget implements C
 
     protected function getLoadingIndicator(): null|string|View
     {
-        return view('components.loading-icons.ball-clip-rotate-multiple');
+        return view('components.loading-icons.ball-pulse');
     }
 
     public function getChartData(): array
