@@ -6,7 +6,7 @@
                     voorspelling</h2>
             </div>
             <div style="width: 100%; height: min-content; padding-bottom: 20px">
-                <form wire:submit="cre  ate">
+                <form wire:submit="create">
                     {{ $this->form }}
 
                     <x-filament::button type="submit" style="margin-top: 10px">
