@@ -37,39 +37,21 @@ class GenreProfitPredictionChart extends Widget implements HasForms
 
     public function create(): void
     {
+        $path = storage_path('app/r');
+
         app(FindOrCreateStorageDirectory::class)('/r');
         $process = new Process([
             'Rscript',
-            base_path('scripts/R/genre-predictions.R')
+            base_path('scripts/R/genre-predictions.R'),
+            $path,
+            $this->data['genres']
         ]);
 
         $process->run();
 
         // Executes after the command finishes
         if (!$process->isSuccessful()) {
-            throw new \Exception($process->getErrorOutput());
+            throw new Exception($process->getErrorOutput());
         }
-
-        dd($process->getOutput());
-    }
-
-
-    public function temp()
-    {
-        $command = 'cd scripts/R && ';
-        $command .= 'Rscript -e "renv::restore()" && ';
-        $command .= 'Rscript genre-predictions.R';
-
-        $output = [];
-        $return_var = 0;
-        exec($command, $output, $return_var);
-
-        // Check if there was an error executing the command
-        if ($return_var !== 0) {
-            throw new Exception("Error executing the R script");
-        }
-
-        // // Output of the command
-        // $csvContent = implode("\n", $output);
     }
 }

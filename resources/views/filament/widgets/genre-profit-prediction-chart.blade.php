@@ -14,10 +14,10 @@
                 </form>
             </div>
             <div style="width: 100%">
-                @if(file_exists(public_path('randomtest.png')))
-                    <img style="width: 100%" src="{{ asset('randomtest.png') }}">
+                @if(\Illuminate\Support\Facades\Storage::exists('public/r/randomtest.png'))
+                    @livewire('genre-prediction-image', ['image' => 'randomtest.png'])    
                 @else
-                    <p>Wachten op data...</p>
+                    <p>Wachten op data...</p> 
                 @endif
             </div>
         </div>

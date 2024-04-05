@@ -3,14 +3,13 @@
 # library('dbplyr')
 # library('dplyr')
 
-# x <- c(1, 2, 3, 4, 5)
-# y <- c(2, 3, 5, 4, 6)
 
-# plot(x, y)
+args <- commandArgs(trailingOnly = TRUE)
 
-# png("scatter_plot.png")
-# Sys.sleep(2)
-# dev.off()
+path <- args[1]
+genre <- args[2]
+
+setwd(path)
 
 x <- rnorm(100)
 y <- rnorm(100)
