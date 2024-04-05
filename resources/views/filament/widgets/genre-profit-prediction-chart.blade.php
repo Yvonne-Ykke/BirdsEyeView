@@ -15,12 +15,16 @@
                 </form>
             </div>
             <div style="width: 100%">
-                @php($img = 'randomtest.png')
-                @if(\Illuminate\Support\Facades\Storage::exists('public/r/randomtest.png'))
-                    <livewire:genre-prediction-image :imageName="$img" key="{{ now() }}" />
-                @else
-                    <p>Wachten op data...</p>
-                @endif
+                <div wire:loading.remove>
+                    @php($img = 'randomtest.png')
+                    @if(\Illuminate\Support\Facades\Storage::exists('public/r/randomtest.png'))
+                        <livewire:genre-prediction-image :imageName="$img" key="{{ now() }}"/>
+                    @endif
+                </div>
+                <div wire:loading>
+                    @include('components.loading-icons.ball-pulse')
+                </div>
+
             </div>
         </div>
         <x-filament-actions::modals/>

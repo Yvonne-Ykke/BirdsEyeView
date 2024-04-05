@@ -15,8 +15,9 @@ class GenrePredictionImage extends Component
     }
 
 
-    public function refreshImage(): void
+    public function refreshImage(string $imageName): void
     {
+        $this->imageName = $imageName;
         $this->render();
     }
 

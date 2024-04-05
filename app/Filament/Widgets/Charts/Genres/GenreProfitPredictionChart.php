@@ -56,6 +56,6 @@ class GenreProfitPredictionChart extends Widget implements HasForms
             throw new Exception($process->getErrorOutput());
         }
 
-        $this->emit('refreshImage');
+//        $this->emit('refreshImage', 'randomtest.png');
     }
 }
