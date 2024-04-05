@@ -4,7 +4,7 @@ namespace App\Console\Commands\Tmdb;
 
 use App\Console\Commands\Support\Actions\DeCompressFiles;
 use App\Console\Commands\Support\Enums\TmdbFileEndpoints;
-use App\Support\Actions\FindOrCreateDirectory;
+use App\Support\Actions\FindOrCreateStorageDirectory;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -40,8 +40,8 @@ class DownloadTmdbFiles extends Command
     {
         $this->endpoints = TmdbFileEndpoints::values();
 
-        app(FindOrCreateDirectory::class)('/tmdb_files/compressed');
-        app(FindOrCreateDirectory::class)('/tmdb_files/decompressed');
+        app(FindOrCreateStorageDirectory::class)('/tmdb_files/compressed');
+        app(FindOrCreateStorageDirectory::class)('/tmdb_files/decompressed');
         $this->downloadFiles();
         app(DeCompressFiles::class)($this->files);
     }

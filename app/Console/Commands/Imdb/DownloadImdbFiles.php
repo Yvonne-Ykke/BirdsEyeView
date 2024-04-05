@@ -4,7 +4,7 @@ namespace App\Console\Commands\Imdb;
 
 use App\Console\Commands\Support\Actions\DeCompressFiles;
 use App\Console\Commands\Support\Enums\ImdbFileEndpoints;
-use App\Support\Actions\FindOrCreateDirectory;
+use App\Support\Actions\FindOrCreateStorageDirectory;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Console\Command;
@@ -39,8 +39,8 @@ class DownloadImdbFiles extends Command
     {
         $this->endpoints = ImdbFileEndpoints::values();
 
-        app(FindOrCreateDirectory::class)($this->baseDirectory . 'compressed');
-        app(FindOrCreateDirectory::class)($this->baseDirectory . 'decompressed');
+        app(FindOrCreateStorageDirectory::class)($this->baseDirectory . 'compressed');
+        app(FindOrCreateStorageDirectory::class)($this->baseDirectory . 'decompressed');
         $this->downloadFiles();
 
         app(DeCompressFiles::class)($this->files, true);

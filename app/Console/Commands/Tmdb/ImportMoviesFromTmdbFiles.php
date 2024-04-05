@@ -5,7 +5,7 @@ namespace App\Console\Commands\Tmdb;
 use App\Console\Commands\Support\Actions\ProcessMovieTmdbFile;
 use App\Console\Commands\Support\Actions\ProcessProductionCompanyFile;
 use App\Console\Commands\Support\Enums\TmdbFileEndpoints;
-use App\Support\Actions\GetFilesFromDirectory;
+use App\Support\Actions\GetFilesFromStorageDirectory;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
 
@@ -32,7 +32,7 @@ class ImportMoviesFromTmdbFiles extends Command
     public function handle(): void
     {
         Artisan::call('app:download-tmdb-files');
-        $this->files = app(GetFilesFromDirectory::class)('/tmdb_files/decompressed');
+        $this->files = app(GetFilesFromStorageDirectory::class)('/tmdb_files/decompressed');
 
         if ($this->checkOnlyConsoleOption()) {
             return;

@@ -4,7 +4,7 @@ namespace App\Support\Actions;
 
 use Illuminate\Support\Facades\Storage;
 
-class GetFilesFromDirectory
+class GetFilesFromStorageDirectory
 {
     public function __invoke($directory): array
     {

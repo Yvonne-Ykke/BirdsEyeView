@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Widgets\Tables\DefaultFilters;
+namespace App\Filament\Widgets\Tables\DefaultTableFilters;
 
 use App\Models\Genre;
 use Filament\Forms\Set;

@@ -4,7 +4,7 @@ namespace App\Support\Actions;
 
 use Illuminate\Support\Facades\Storage;
 
-class FindOrCreateDirectory
+class FindOrCreateStorageDirectory
 {
     public function __invoke(string $directory): void
     {

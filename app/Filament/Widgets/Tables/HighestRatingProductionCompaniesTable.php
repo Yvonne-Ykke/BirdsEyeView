@@ -2,7 +2,7 @@
 
 namespace App\Filament\Widgets\Tables;
 
-use App\Filament\Widgets\Tables\DefaultFilters\GenreFilter;
+use App\Filament\Widgets\Tables\DefaultTableFilters\GenreFilter;
 use App\Models\ProductionCompany;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\BaseFilter;
