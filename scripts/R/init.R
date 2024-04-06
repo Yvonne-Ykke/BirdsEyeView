@@ -1,5 +1,10 @@
-library(RPostgreSQL)
-library(dotenv)
+library("RPostgreSQL")
+library("dotenv")
+library("dbplyr")
+library("dplyr")
+library("RODBC")
+library("odbc")
+library("DBI")
 
 dotenv::load_dot_env("../../.env")
 
