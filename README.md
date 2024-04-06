@@ -120,7 +120,12 @@ Alleen geïnteresseerd in films of production companies?
 
 ### Grafieken alvast cachen?
 
-> php artisan cache:charts
+//TODO: Deze werkt nog niet
+> php artisan cache:widget-charts
+
+### Tabellen alvast cachen?
+
+> php artisan cache:widget-tables
 
 
 ## Laravel directory guide
