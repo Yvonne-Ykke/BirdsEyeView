@@ -45,7 +45,7 @@ class SetDatabaseIndexes extends Command
             $this->cacheWidgets();
             return;
         }
-        
+
         $this->cacheCharts();
         $this->cacheTables();
     }
