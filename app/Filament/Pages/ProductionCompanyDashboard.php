@@ -7,6 +7,7 @@ use App\Filament\Widgets\Charts\Genres\GenreRatingsChart;
 use App\Filament\Widgets\Charts\Genres\GenreRevenueTimelineChart;
 use App\Filament\Widgets\Charts\ProductionCompanies\ProductionCompanyRatingTimelineChart;
 use App\Filament\Widgets\Charts\ProductionCompanies\ProductionCompanyRevenueTimelineChart;
+use App\Filament\Widgets\Tables\BestProductionCompaniesTableWidget;
 use App\Filament\Widgets\Tables\HighestRatingProductionCompaniesTable;
 use Closure;
 use Illuminate\Support\Facades\Route;
@@ -39,9 +40,9 @@ class ProductionCompanyDashboard extends \Filament\Pages\Dashboard
     public function getWidgets(): array
     {
         return [
-//            HighestRatingProductionCompaniesTable::class,
             ProductionCompanyRevenueTimelineChart::class,
             ProductionCompanyRatingTimelineChart::class,
+            BestProductionCompaniesTableWidget::class,
         ];
     }
 
