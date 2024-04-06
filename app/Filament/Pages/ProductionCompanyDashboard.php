@@ -2,13 +2,10 @@
 
 namespace App\Filament\Pages;
 
-use App\Filament\Widgets\Charts\Genres\AmountOfTitlesPerGenreChart;
-use App\Filament\Widgets\Charts\Genres\GenreRatingsChart;
-use App\Filament\Widgets\Charts\Genres\GenreRevenueTimelineChart;
 use App\Filament\Widgets\Charts\ProductionCompanies\ProductionCompanyRatingTimelineChart;
 use App\Filament\Widgets\Charts\ProductionCompanies\ProductionCompanyRevenueTimelineChart;
-use App\Filament\Widgets\Tables\BestProductionCompaniesTableWidget;
 use App\Filament\Widgets\Tables\HighestRatingProductionCompaniesTable;
+use App\Filament\Widgets\Tables\ProductionCompanies\BestProductionCompaniesTableWidget;
 use Closure;
 use Illuminate\Support\Facades\Route;
 

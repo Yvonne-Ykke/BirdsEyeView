@@ -10,7 +10,7 @@ class BestProductionCompaniesTable extends Component
 
     public function mount($data): void
     {
-        $this->data = $data;
+        $this->data = json_decode(json_encode($data), true);
     }
 
     public function render()

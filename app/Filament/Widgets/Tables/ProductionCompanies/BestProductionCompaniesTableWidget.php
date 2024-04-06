@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Widgets\Tables;
+namespace App\Filament\Widgets\Tables\ProductionCompanies;
 
 use App\Filament\Widgets\Charts\DefaultChartFilters\GenreFilter;
 use App\Filament\Widgets\Support\TableInterface;

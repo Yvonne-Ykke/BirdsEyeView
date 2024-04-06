@@ -15,14 +15,14 @@ class CacheCharts extends Command
      *
      * @var string
      */
-    protected $signature = 'cache:charts';
+    protected $signature = 'cache:widget-charts';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Cache all widget charts';
 
     protected Collection $charts;
 
