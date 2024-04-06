@@ -9,6 +9,7 @@ class GenrePredictionImage extends Component
     public string $imageName;
 
     protected $listeners = ['refreshImage'];
+    
     public function mount(string $imageName)
     {
         $this->imageName = $imageName;

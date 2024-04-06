@@ -2,7 +2,7 @@
     <x-filament::section>
         <div style="display: flex; flex-direction: column">
             <div>
-                <h2 class="text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">Genre wist
+                <h2 class="text-3xl font-semibold tracking-tight text-gray-950 dark:text-white">Genre winst
                     voorspelling</h2>
             </div>
             <div style="width: 100%; height: min-content; padding-bottom: 20px">
@@ -16,15 +16,14 @@
             </div>
             <div style="width: 100%">
                 <div wire:loading.remove>
-                    @php($img = 'randomtest.png')
-                    @if(\Illuminate\Support\Facades\Storage::exists('public/r/randomtest.png'))
+                    @php($img = 'profit_over_time.png')
+                    @if(\Illuminate\Support\Facades\Storage::exists('public/r/profit_over_time.png'))
                         <livewire:genre-prediction-image :imageName="$img" key="{{ now() }}"/>
                     @endif
                 </div>
                 <div wire:loading>
                     @include('components.loading-icons.ball-pulse')
                 </div>
-
             </div>
         </div>
         <x-filament-actions::modals/>

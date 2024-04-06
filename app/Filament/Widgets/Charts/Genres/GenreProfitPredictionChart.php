@@ -3,13 +3,16 @@
 namespace App\Filament\Widgets\Charts\Genres;
 
 use App\Filament\Widgets\Charts\DefaultChartFilters\GenreFilter;
+use App\Filament\Widgets\Charts\DefaultChartFilters\YearFromFilter;
 use App\Support\Actions\FindOrCreateStorageDirectory;
 use Filament\Forms\Concerns\InteractsWithForms;
+use Symfony\Component\Process\Process;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Widgets\Widget;
 use Filament\Forms\Form;
 use Exception;
-use Symfony\Component\Process\Process;
+
+use function Termwind\render;
 
 class GenreProfitPredictionChart extends Widget implements HasForms
 {
@@ -31,8 +34,10 @@ class GenreProfitPredictionChart extends Widget implements HasForms
         return $form
             ->schema([
                 GenreFilter::get()
-                    ->label('genre')
-                    ->multiple(false),
+                    ->label('Genre')
+                    ->multiple(false)
+                    ->required(),
+                YearFromFilter::get()
             ])
             ->statePath('data');
     }
@@ -46,7 +51,8 @@ class GenreProfitPredictionChart extends Widget implements HasForms
             'Rscript',
             base_path('scripts/R/genre-predictions.R'),
             $path,
-            $this->data['genres']
+            $this->data['genres'],
+            $this->data['yearFrom'],
         ]);
 
         $process->run();
@@ -56,6 +62,6 @@ class GenreProfitPredictionChart extends Widget implements HasForms
             throw new Exception($process->getErrorOutput());
         }
 
-//        $this->emit('refreshImage', 'randomtest.png');
+    //    $this->emit('refreshImage', 'randomtest.png');
     }
 }
