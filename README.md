@@ -55,7 +55,7 @@
 > In je lokale pg_hba.conf bestand alle METHOD aanpassen naar md5
 
 > cmd --> psql -U postgres --> ALTER USER postgres WITH PASSWORD 'new-password';
-                (Hierna hetzelfde maar dan je wachtwoord weer terug veranderen naar wat je hiervoor had)
+                (Vervang 'new-password' door het wachtwoord dat je gebruikt voor PostgreSQL)
 
 
 # Python script gebruiken
