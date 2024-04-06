@@ -3,8 +3,8 @@
         <thead>
         <tr>
             <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">Naam</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Gemiddelde recensie</th>
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Aantal gemaakte titels</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Gemiddelde recensie</th>
         </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
