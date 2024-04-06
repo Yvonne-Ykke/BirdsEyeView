@@ -16,7 +16,7 @@ class SetDatabaseIndexes extends Command
      *
      * @var string
      */
-    protected $signature = 'app:set-database-indexes {--cacheCharts=}';
+    protected $signature = 'app:set-database-indexes {--cacheCharts} {--cacheTables} {--cacheWidgets}';
 
     /**
      * The console command description.
@@ -37,9 +37,17 @@ class SetDatabaseIndexes extends Command
 
         $this->setTitlesIndexes();
         $this->setRatingsIndexes();
+
         Artisan::call('cache:clear');
         $this->info('Cleared cache');
+
+        if ($this->option('cacheWidgets')){
+            $this->cacheWidgets();
+            return;
+        }
+        
         $this->cacheCharts();
+        $this->cacheTables();
     }
 
     private function checkDatabaseImporting(): bool
@@ -97,9 +105,26 @@ class SetDatabaseIndexes extends Command
     private function cacheCharts(): void
     {
         if ($this->option('cacheCharts')) {
-            Artisan::call('cache:charts');
+            Artisan::call('cache:widget-charts');
             $this->info('Graphs are being cached');
         }
+    }
+
+    private function cacheTables(): void
+    {
+        if ($this->option('cacheTables')) {
+            Artisan::call('cache:widget-tables');
+            $this->info('Table widgets are being cached');
+        }
+    }
+
+    private function cacheWidgets(): void
+    {
+        Artisan::call('cache:widget-charts');
+        $this->info('Graphs are being cached');
+
+        Artisan::call('cache:widget-tables');
+        $this->info('Table widgets are being cached');
     }
 
 
