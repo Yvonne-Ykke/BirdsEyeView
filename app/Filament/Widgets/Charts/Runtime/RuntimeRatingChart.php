@@ -63,7 +63,10 @@ class RuntimeRatingChart extends ApexChartWidget
                 ],
             ],
             'yaxis' => [
+                'min' => 1,
+                'max' => 10,
                 'labels' => [
+                    'name'=> 'minuten',
                     'style' => [
                         'fontFamily' => 'inherit',
                     ],
