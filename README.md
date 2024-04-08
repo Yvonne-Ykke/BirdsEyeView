@@ -57,6 +57,9 @@
 > cmd --> psql -U postgres --> ALTER USER postgres WITH PASSWORD 'new-password';
                 (Vervang 'new-password' door het wachtwoord dat je gebruikt voor PostgreSQL)
 
+> In de init.R de eerste 2 regels code uit commentaar halen. 
+                    Dit kan je na 1 keer de init te draaien weer terug in commentaar zetten.
+
 
 # Python script gebruiken
 

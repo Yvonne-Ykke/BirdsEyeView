@@ -1,3 +1,6 @@
+# chooseCRANmirror(ind=34)
+# install.packages(c("DBI", "RODBC", "odbc", "dplyr", "dbplyr", "dotenv", "RPostgreSQL"))
+
 library("RPostgreSQL")
 library("dotenv")
 library("dbplyr")
