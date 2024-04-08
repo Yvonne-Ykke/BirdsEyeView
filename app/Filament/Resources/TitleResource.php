@@ -128,13 +128,15 @@ class TitleResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('primary_title')
-                    ->label('Titel'),
+                    ->label('Titel')
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('type')
                     ->formatStateUsing(function ($state) {
                         return TitleTypes::translationArray()[$state];
                     })
                     ->label('Titel'),
                 Tables\Columns\TextColumn::make('start_year')
+                    ->searchable()
                     ->label('Uitgebracht op'),
                 Tables\Columns\TextColumn::make('end_year')
                     ->label('Eindjaar'),

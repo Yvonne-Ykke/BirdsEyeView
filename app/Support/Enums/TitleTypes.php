@@ -23,7 +23,9 @@ enum TitleTypes: string
             'tvMiniSeries' => 'Tv short',
             'tvSeries' => 'Serie',
             'tvShort' => 'TV mini-serie',
+            'tvEpisode' => 'Tv aflevering',
             'tvSpecial' => 'TV special',
+            'video' => 'Video',
         ];
     }
 
