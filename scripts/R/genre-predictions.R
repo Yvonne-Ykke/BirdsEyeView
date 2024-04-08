@@ -1,6 +1,5 @@
 setwd("../scripts/R")
 
-install.packages(c('dbplyr', 'dplyr'))
 library('dbplyr')
 library('dplyr')
 

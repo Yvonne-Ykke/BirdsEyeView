@@ -20,8 +20,6 @@
                     <div>
                         <img style="width: 100%" src="{{ url('storage/r/' . $image) }}" alt="Chart">
                     </div>
-                        
-                    {{-- <livewire:genre-prediction-image :imageName="$image" key="{{ now() }}"/> --}}
                     @endif
                 </div>
                 <div wire:loading>

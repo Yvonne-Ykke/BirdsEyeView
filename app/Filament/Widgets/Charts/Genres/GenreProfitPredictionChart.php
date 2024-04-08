@@ -49,8 +49,6 @@ class GenreProfitPredictionChart extends Widget implements HasForms
 
     public function create(): void
     {
-        // dd($this->data);
-
         $path = storage_path('app/public/r');
         $image = "profit_over_time-" . $this->data['genres'] . "-" . $this->data['yearFrom']. ".png";
 
@@ -75,10 +73,7 @@ class GenreProfitPredictionChart extends Widget implements HasForms
         if (!$process->isSuccessful()) {
             throw new Exception($process->getErrorOutput());
         }
-
     
-        $this->image = $image;
-
-    //    $this->emit('refreshImage', 'randomtest.png');
+        $this->image = $image; // Werkt niet helemaal, herlaad de pagina om de grafiek te zien.
     }
 }

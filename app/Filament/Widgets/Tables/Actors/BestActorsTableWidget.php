@@ -4,7 +4,7 @@ namespace App\Filament\Widgets\Tables\Actors;
 
 use App\Filament\Widgets\Charts\DefaultChartFilters\GenreFilter;
 use App\Filament\Widgets\Support\TableInterface;
-use App\Models\ProductionCompany;
+use App\Models\People;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Forms\Form;
@@ -18,9 +18,9 @@ class BestActorsTableWidget extends Widget implements HasForms, TableInterface
 
     protected static string $view = 'filament.widgets.best-actors-table-widget';
 
-    public string $title = 'Hoogst beoordeelde acteurs';
+    public string $title = 'Meest winstgevende acteurs';
 
-    protected string $tableId = 'BestProductionCompaniesTable';
+    protected string $tableId = 'BestActorsTable';
 
     /*Data uit formulier*/
     public array $data = [];
@@ -54,14 +54,13 @@ class BestActorsTableWidget extends Widget implements HasForms, TableInterface
 
     public function buildQuery(array $filterValues): \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder
     {
-        $query = ProductionCompany::query()
+        $query = People::query()
         ->select('people.name', DB::raw('SUM(titles.revenue - titles.budget) as total_profit'))
         ->from('people')
         ->join('people_professions', 'people.id', '=', 'people_professions.people_id')
         ->join('professions', 'people_professions.profession_id', '=', 'professions.id')
         ->join('model_has_crew', 'people.id', '=', 'model_has_crew.people_id')
         ->join('titles', 'model_has_crew.model_id', '=', 'titles.id')
-        ->join('people', 'people.id', '=', 'model_has_crew.people_id') // Add this join for the "people" table
         ->where('professions.name', '=', 'actor')
         ->where('titles.revenue', '>', 0)
         ->where('titles.budget', '>', 0)
