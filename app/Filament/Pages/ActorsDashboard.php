@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Widgets\Charts\Shows\ShowsRatingsGenreChart;
+use App\Filament\Widgets\Tables\Actors\BestActorsTableWidget;
 use Closure;
 use Illuminate\Support\Facades\Route;
 
@@ -32,7 +33,7 @@ class ActorsDashboard extends \Filament\Pages\Dashboard
     public function getWidgets(): array
     {
         return [
-
+            BestActorsTableWidget::class,
         ];
     }
 

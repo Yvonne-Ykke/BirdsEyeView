@@ -8,6 +8,7 @@ use App\Support\Actions\FindOrCreateStorageDirectory;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Symfony\Component\Process\Process;
 use Filament\Forms\Contracts\HasForms;
+use Illuminate\Support\Facades\Storage;
 use Filament\Widgets\Widget;
 use Filament\Forms\Form;
 use Exception;
@@ -24,6 +25,8 @@ class GenreProfitPredictionChart extends Widget implements HasForms
 
     public ?array $data = [];
 
+    public string $image = '';
+    
     public function mount(): void
     {
         $this->form->fill();
@@ -31,6 +34,8 @@ class GenreProfitPredictionChart extends Widget implements HasForms
 
     public function form(Form $form): Form
     {
+
+
         return $form
             ->schema([
                 GenreFilter::get()
@@ -44,7 +49,16 @@ class GenreProfitPredictionChart extends Widget implements HasForms
 
     public function create(): void
     {
+        // dd($this->data);
+
         $path = storage_path('app/public/r');
+        $image = "profit_over_time-" . $this->data['genres'] . "-" . $this->data['yearFrom']. ".png";
+
+        if(Storage::exists('public/r/' . $image))
+        {
+            $this->image = $image;
+            return;
+        }
 
         app(FindOrCreateStorageDirectory::class)('public/r');
         $process = new Process([
@@ -61,6 +75,9 @@ class GenreProfitPredictionChart extends Widget implements HasForms
         if (!$process->isSuccessful()) {
             throw new Exception($process->getErrorOutput());
         }
+
+    
+        $this->image = $image;
 
     //    $this->emit('refreshImage', 'randomtest.png');
     }

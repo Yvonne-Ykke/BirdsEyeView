@@ -16,9 +16,12 @@
             </div>
             <div style="width: 100%">
                 <div wire:loading.remove>
-                    @php($img = 'profit_over_time.png')
-                    @if(\Illuminate\Support\Facades\Storage::exists('public/r/profit_over_time.png'))
-                        <livewire:genre-prediction-image :imageName="$img" key="{{ now() }}"/>
+                    @if(\Illuminate\Support\Facades\Storage::exists('public/r/' . $image) && !empty($image))
+                    <div>
+                        <img style="width: 100%" src="{{ url('storage/r/' . $image) }}" alt="Chart">
+                    </div>
+                        
+                    {{-- <livewire:genre-prediction-image :imageName="$image" key="{{ now() }}"/> --}}
                     @endif
                 </div>
                 <div wire:loading>

@@ -55,21 +55,19 @@ class BestActorsTableWidget extends Widget implements HasForms, TableInterface
     public function buildQuery(array $filterValues): \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder
     {
         $query = ProductionCompany::query()
-            ->select([
-                'production_companies.name as name',
-                DB::raw('CAST(SUM(mhr.average_rating * mhr.number_votes) / SUM(mhr.number_votes) AS DECIMAL(16, 2)) AS true_average_rating'),
-                DB::raw('COUNT(DISTINCT t.id) AS made_titles')
-            ])
-            ->join('model_has_production_company as mhpc', 'production_companies.id', '=', 'mhpc.production_company_id')
-            ->join('titles as t', 'mhpc.model_id', '=', 't.id')
-            ->join('model_has_ratings as mhr', 't.id', '=', 'mhr.model_id')
-            ->where('mhr.number_votes', '>', 0)
-            ->where('mhr.average_rating', '>', 0)
-            ->groupBy(['production_companies.name', 'production_companies.id'])
-            ->havingRaw('COUNT(DISTINCT t.id) > 100')
-            ->limit(10)
-            ->orderByDesc('true_average_rating')
-            ->orderByDesc('made_titles');
+        ->select('people.name', DB::raw('SUM(titles.revenue - titles.budget) as total_profit'))
+        ->from('people')
+        ->join('people_professions', 'people.id', '=', 'people_professions.people_id')
+        ->join('professions', 'people_professions.profession_id', '=', 'professions.id')
+        ->join('model_has_crew', 'people.id', '=', 'model_has_crew.people_id')
+        ->join('titles', 'model_has_crew.model_id', '=', 'titles.id')
+        ->join('people', 'people.id', '=', 'model_has_crew.people_id') // Add this join for the "people" table
+        ->where('professions.name', '=', 'actor')
+        ->where('titles.revenue', '>', 0)
+        ->where('titles.budget', '>', 0)
+        ->groupBy('people.id', 'people.name')
+        ->orderByDesc('total_profit')
+        ->limit(10);
 
         if ($filterValues['genreId']) {
             $query

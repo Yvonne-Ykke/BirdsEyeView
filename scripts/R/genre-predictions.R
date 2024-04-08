@@ -1,7 +1,8 @@
 setwd("../scripts/R")
 
-# library('dbplyr')
-# library('dplyr')
+install.packages(c('dbplyr', 'dplyr'))
+library('dbplyr')
+library('dplyr')
 
 source('init.R')
 
@@ -28,7 +29,7 @@ filtered_result <- result[result$x >= year_from, ]
 
 lm_model <- lm(y ~ x, data = filtered_result)
 
-png(file = paste0(path, "/profit_over_time.png"), width = 800, height = 600)
+png(file = paste0(path, "/profit_over_time-",genre,"-",year_from,".png"), width = 800, height = 600)
 
 plot(filtered_result$x, filtered_result$y, type = "l", xlab = "Jaar", ylab = "Winst (in milioenen)",
      main = paste("Genre winst tijdlijn"))
@@ -36,3 +37,5 @@ plot(filtered_result$x, filtered_result$y, type = "l", xlab = "Jaar", ylab = "Wi
 abline(lm_model, col = "red")
 
 dev.off()
+
+break

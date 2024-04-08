@@ -41,8 +41,7 @@ class TitlePolicy
      */
     public function create(User $user): bool
     {
-        return false;
-//        return $user->can('create_title');
+        return $user->can('create_title');
     }
 
     /**
@@ -54,9 +53,7 @@ class TitlePolicy
      */
     public function update(User $user, Title $title): bool
     {
-
-        return false;
-//        return $user->can('update_title');
+        return $user->can('update_title');
     }
 
     /**
@@ -68,8 +65,7 @@ class TitlePolicy
      */
     public function delete(User $user, Title $title): bool
     {
-        return false;
-//        return $user->can('delete_title');
+        return $user->can('delete_title');
     }
 
     /**
@@ -80,8 +76,7 @@ class TitlePolicy
      */
     public function deleteAny(User $user): bool
     {
-        return false;
-//        return $user->can('delete_any_title');
+        return $user->can('delete_any_title');
     }
 
     /**
@@ -93,8 +88,7 @@ class TitlePolicy
      */
     public function forceDelete(User $user, Title $title): bool
     {
-        return false;
-//        return $user->can('force_delete_title');
+        return $user->can('force_delete_title');
     }
 
     /**
@@ -105,8 +99,7 @@ class TitlePolicy
      */
     public function forceDeleteAny(User $user): bool
     {
-        return false;
-//        return $user->can('force_delete_any_title');
+        return $user->can('force_delete_any_title');
     }
 
     /**
@@ -118,8 +111,7 @@ class TitlePolicy
      */
     public function restore(User $user, Title $title): bool
     {
-        return false;
-//        return $user->can('restore_title');
+        return $user->can('restore_title');
     }
 
     /**
@@ -130,8 +122,7 @@ class TitlePolicy
      */
     public function restoreAny(User $user): bool
     {
-        return false;
-//        return $user->can('restore_any_title');
+        return $user->can('restore_any_title');
     }
 
     /**
@@ -143,8 +134,7 @@ class TitlePolicy
      */
     public function replicate(User $user, Title $title): bool
     {
-//        return $user->can('replicate_title');
-        return false;
+        return $user->can('replicate_title');
     }
 
     /**
