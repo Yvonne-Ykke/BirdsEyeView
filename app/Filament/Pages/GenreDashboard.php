@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Widgets\Charts\Genres\AmountOfTitlesPerGenreChart;
+use App\Filament\Widgets\Charts\Genres\GenreProfitPredictionChart;
 use App\Filament\Widgets\Charts\Genres\GenreRatingsChart;
 use App\Filament\Widgets\Charts\Genres\GenreRevenueTimelineChart;
 use Closure;
@@ -39,6 +40,8 @@ class GenreDashboard extends \Filament\Pages\Dashboard
             GenreRatingsChart::class,
             GenreRevenueTimelineChart::class,
             AmountOfTitlesPerGenreChart::class,
+            GenreProfitPredictionChart::class,
+
         ];
     }
 
