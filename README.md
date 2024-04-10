@@ -126,6 +126,8 @@ Alleen geïnteresseerd in films of production companies?
 //TODO: Deze werkt nog niet
 > php artisan cache:widget-charts
 
+> php artisan app:preload-profit-prediction-images
+
 ### Tabellen alvast cachen?
 
 > php artisan cache:widget-tables
