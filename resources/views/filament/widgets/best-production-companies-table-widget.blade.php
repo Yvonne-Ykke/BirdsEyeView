@@ -10,7 +10,7 @@
                         <div>
                             <button type="button"
                                     @click="open = !open"
-                                    @click.outside="open = false"
+{{--                                    @click.outside="open = false"--}}
                                     class="inline-flex w-full justify-center gap-x-1.5 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm hover:bg-gray-50"
                                     id="menu-button" aria-expanded="true" aria-haspopup="true">
                                 <span class="sr-only">Open Filters</span>

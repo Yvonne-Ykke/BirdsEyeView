@@ -53,6 +53,7 @@ class CacheTables extends Command
         $cacheKey = $item->getCacheKey($filters);
 
         CacheQueryJob::dispatch(collect($query), $cacheKey);
+        $this->info('queued' . $cacheKey);
     }
     private function handleFilters(array $filters, TableInterface $item): void
     {
