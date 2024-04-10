@@ -69,10 +69,10 @@ class GenreProfitPredictionChart extends Widget implements HasForms
 
         $process->run();
         // Executes after the command finishes
-        if (!$process->isSuccessful()) {
-            throw new Exception($process->getErrorOutput());
-        }
-//
+//        if (!$process->isSuccessful()) {
+//            throw new Exception($process->getErrorOutput());
+//        }
+        
         $this->image = $image; // Werkt niet helemaal, herlaad de pagina om de grafiek te zien.
     }
 }
