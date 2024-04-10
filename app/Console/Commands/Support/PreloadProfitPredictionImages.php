@@ -39,9 +39,8 @@ class PreloadProfitPredictionImages extends Command
 
         foreach ($genres as $genre) {
             for ($i = 1899; $i <= $currentYear; $i++) {
-//                SaveGenreProfitPredictionImagesJob::dispatch($genre->id, $i);
-                $this->saveImage($genre->id, $i);
-                $this->info('saved year ' . $i . ' for genre ' . $genre->id);
+                SaveGenreProfitPredictionImagesJob::dispatch($genre->id, $i);
+                $this->info('queued year ' . $i . ' for genre ' . $genre->id);
             }
         }
     }
@@ -52,30 +51,6 @@ class PreloadProfitPredictionImages extends Command
             ->where('name', '!=', '\N')
             ->where('name', '!=', 'Adult')
             ->get();
-    }
-
-    public function saveImage(int $genreId, int $year): void
-    {
-        $path = storage_path('app/public/r');
-        $image = "profit_over_time-" . $genreId . "-" . $year . ".png";
-
-        if (Storage::exists('public/r/' . $image)) {
-            return;
-        }
-
-        $process = new Process([
-            'Rscript',
-            base_path('scripts/R/genre-predictions.R'),
-            $path,
-            $genreId,
-            $year,
-        ]);
-
-        $process->run();
-
-        if (!$process->isSuccessful()) {
-            throw new Exception($process->getErrorOutput());
-        }
     }
 
 

@@ -1,4 +1,7 @@
-setwd("../scripts/R")
+args <- commandArgs(trailingOnly = TRUE)
+
+working_path <- args[4]
+setwd(working_path)
 
 library('dbplyr')
 library('dplyr')
@@ -7,7 +10,6 @@ suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(dbplyr))
 source('init.R')
 
-args <- commandArgs(trailingOnly = TRUE)
 
 path <- args[1]
 genre <- args[2]

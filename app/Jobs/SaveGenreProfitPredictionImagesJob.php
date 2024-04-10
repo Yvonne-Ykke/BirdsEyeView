@@ -33,6 +33,8 @@ class SaveGenreProfitPredictionImagesJob implements ShouldQueue
     {
 //        dd($this->genreId, $this->year);
         $path = storage_path('app/public/r');
+
+        $workingDirectoryPath = str_replace('\\', '/', base_path('scripts/R/'));
         $image = "profit_over_time-" . $this->genreId . "-" . $this->year . ".png";
 
         if (Storage::exists('public/r/' . $image)) {
@@ -45,6 +47,7 @@ class SaveGenreProfitPredictionImagesJob implements ShouldQueue
             $path,
             $this->genreId,
             $this->year,
+            $workingDirectoryPath
         ]);
 
         $process->run();
