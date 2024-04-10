@@ -9,8 +9,9 @@
 * Nodejs 18 or higher
 * Pgsql
 * R 4.3.3
-* Python 3
+* Python 3.12
 * Localhost like Laravel Valet
+* API key and access token for TMDB
 
 ### setup
 
