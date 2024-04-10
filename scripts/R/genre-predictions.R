@@ -3,6 +3,8 @@ setwd("../scripts/R")
 library('dbplyr')
 library('dplyr')
 
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(dbplyr))
 source('init.R')
 
 args <- commandArgs(trailingOnly = TRUE)
