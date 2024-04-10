@@ -11,6 +11,7 @@ class LatestImportStat extends BaseWidget
 {
     protected static ?string $pollingInterval = null;
 
+//    protected int | string | array $columnSpan = 1;
     protected function getStats(): array
     {
         return [
