@@ -88,7 +88,7 @@ Graag een kleinere dataset met alleen films? Skip naar tmdb kopje
 
 ### voer het import script uit
 
-> python app/Python/importMovies.py
+> python app/Python/import_imdb_data.py
 
 # Tmdb
 
@@ -196,7 +196,7 @@ Frontend gerelateerde code
 Niet relevant
 
 ### scripts
-Alle externe scripts die we gebruiken, in dit geval R
+Overige externe scripts die we gebruiken, tot nu toe alleen R
 
 ### storage
 Alle bestanden die gegenereerd worden zoals imdb en tmdb import bestanden of afbeeldingen die gegenereerd worden door R
